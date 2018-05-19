@@ -3,8 +3,11 @@
 # Free software licensed under the GPL version 2 or later
 
 
-import os,re,datetime, sys
-import tempfile, time
+import os
+import re
+import datetime
+import sys
+import tempfile
 
 ITEMS_TO_KEEP = 20
 CACHE_FILE = '/srv/ftp-master.debian.org/misc/dinstall_time_cache'
@@ -46,24 +49,24 @@ if m:
     raise Exception("I don't like command line arguments including char '%s'"%m.group(0))
 
 if args:
-  for l in os.popen('bzgrep -H "^Archive maintenance timestamp" "'+'" "'.join(args)+'"'):
-    m = LINE.match(l)
-    if not m:
-        raise Exception("woops '%s'"%l)
-    g = map(lambda x: (not x.isdigit() and x) or int(x), m.groups())
-    dt = datetime.datetime(*g[:6])
-    if olddt != dt:
-        oldsecs = 0
-        olddt = dt
-    dt2 = datetime.datetime(*(g[:3]+g[-3:]))
-    secs = (dt2-dt).seconds
-    assert secs >= 0 # should add 24*60*60
-    k = g[6]
-    d.setdefault(str(dt),{})[k] = (secs-oldsecs)/60.0
-    oldsecs = secs
-    if k not in ks:
-        ks.add(k)
-        kl.append(k)
+    for l in os.popen('bzgrep -H "^Archive maintenance timestamp" "'+'" "'.join(args)+'"'):
+        m = LINE.match(l)
+        if not m:
+            raise Exception("woops '%s'"%l)
+        g = map(lambda x: (not x.isdigit() and x) or int(x), m.groups())
+        dt = datetime.datetime(*g[:6])
+        if olddt != dt:
+            oldsecs = 0
+            olddt = dt
+        dt2 = datetime.datetime(*(g[:3]+g[-3:]))
+        secs = (dt2-dt).seconds
+        assert secs >= 0 # should add 24*60*60
+        k = g[6]
+        d.setdefault(str(dt),{})[k] = (secs-oldsecs)/60.0
+        oldsecs = secs
+        if k not in ks:
+            ks.add(k)
+            kl.append(k)
 
 if (wantkeys-ks):
     print >> sys.stderr, "warning, requested keys not found in any log: "+' '.join(wantkeys-ks)
@@ -74,10 +77,11 @@ datakeys.sort()
 f = open(CACHE_FILE+".tmp","w")
 for dk in datakeys:
     print >> f, dk+'\t'+'\t'.join(
-      ["%s:%s"%(k,str(d[dk][k])) for k in kl if k in d[dk]])
+        ["%s:%s"%(k,str(d[dk][k])) for k in kl if k in d[dk]])
 f.close()
 os.rename(CACHE_FILE+".tmp", CACHE_FILE)
 datakeys = datakeys[-ITEMS_TO_KEEP:]
+
 
 def dump_file(outfn,keystolist, showothers):
     showothers = (showothers and 1) or 0
@@ -99,7 +103,7 @@ def dump_file(outfn,keystolist, showothers):
   k = setdiff(names(d),c("ts","timestamp"))
   #palette(rainbow(max(length(k),2)))
   palette(c("midnightblue", "gold", "turquoise", "plum4", "palegreen1", "OrangeRed", "green4", "blue",
-	"magenta", "darkgoldenrod3", "tomato4", "violetred2","thistle4", "steelblue2", "springgreen4", "salmon","gray"))
+        "magenta", "darkgoldenrod3", "tomato4", "violetred2","thistle4", "steelblue2", "springgreen4", "salmon","gray"))
   #plot(d[["runtime"]],d[["compress"]],type="l",col="blue")
   #lines(d[["runtime"]],d[["logremove"]],type="l",col="red")
   #legend(as.POSIXct("2008-12-05"),9500,"logremove",col="red",lty=1)

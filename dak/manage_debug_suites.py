@@ -38,7 +38,8 @@ Logger = None
 
 ################################################################################
 
-def usage (exit_code=0):
+
+def usage(exit_code=0):
     print """Usage: dak manage-debug-suites [-a|--all|<suite>...]
 Manage the contents of one or more debug suites
 
@@ -49,6 +50,7 @@ Manage the contents of one or more debug suites
     sys.exit(exit_code)
 
 ################################################################################
+
 
 def clean(debug_suite, transaction):
     session = transaction.session
@@ -86,14 +88,16 @@ def clean(debug_suite, transaction):
     for row in result:
         Logger.log(["remove", debug_suite.suite_name, row[0], row[1], row[2]])
 
-def main ():
+
+def main():
     global Options, Logger
 
     cnf = Config()
 
     for i in ["Help", "No-Action", "All"]:
-        if not cnf.has_key("Manage-Debug-Suites::Options::%s" % (i)):
-            cnf["Manage-Debug-Suites::Options::%s" % (i)] = ""
+        key = "Manage-Debug-Suites::Options::%s" % i
+        if key not in cnf:
+            cnf[key] = ""
 
     Arguments = [('h',"help","Manage-Debug-Suites::Options::Help"),
                  ('n',"no-action","Manage-Debug-Suites::Options::No-Action"),

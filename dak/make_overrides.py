@@ -39,6 +39,7 @@ from daklib import utils
 
 ################################################################################
 
+
 def usage(exit_code=0):
     print """Usage: dak make-overrides
 Outputs the override tables to text files.
@@ -47,6 +48,7 @@ Outputs the override tables to text files.
     sys.exit(exit_code)
 
 ################################################################################
+
 
 def do_list(output_file, suite, component, otype, session):
     """
@@ -98,12 +100,14 @@ def do_list(output_file, suite, component, otype, session):
 
 ################################################################################
 
-def main ():
+
+def main():
     cnf = Config()
     Arguments = [('h',"help","Make-Overrides::Options::Help")]
     for i in [ "help" ]:
-        if not cnf.has_key("Make-Overrides::Options::%s" % (i)):
-            cnf["Make-Overrides::Options::%s" % (i)] = ""
+        key = "Make-Overrides::Options::%s" % i
+        if key not in cnf:
+            cnf[key] = ""
     apt_pkg.parse_commandline(cnf.Cnf, Arguments, sys.argv)
     Options = cnf.subtree("Make-Overrides::Options")
     if Options["Help"]:
@@ -112,7 +116,7 @@ def main ():
     d = DBConn()
     session = d.session()
 
-    for suite in session.query(Suite).filter(Suite.overrideprocess==True):
+    for suite in session.query(Suite).filter(Suite.overrideprocess == True):  # noqa:E712
         if suite.untouchable:
             print "Skipping %s as it is marked as untouchable" % suite.suite_name
             continue

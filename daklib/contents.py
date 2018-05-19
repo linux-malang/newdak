@@ -37,10 +37,12 @@ import daklib.daksubprocess
 import os.path
 import sqlalchemy.sql as sql
 
+
 class BinaryContentsWriter(object):
     '''
     BinaryContentsWriter writes the Contents-$arch.gz files.
     '''
+
     def __init__(self, suite, architecture, overridetype, component):
         self.suite = suite
         self.architecture = architecture
@@ -146,6 +148,7 @@ class SourceContentsWriter(object):
     '''
     SourceContentsWriter writes the Contents-source.gz files.
     '''
+
     def __init__(self, suite, component):
         self.suite = suite
         self.component = component
@@ -231,7 +234,7 @@ def binary_helper(suite_id, arch_id, overridetype_id, component_id):
     This function is called in a new subprocess and multiprocessing wants a top
     level function.
     '''
-    session = DBConn().session(work_mem = 1000)
+    session = DBConn().session(work_mem=1000)
     suite = Suite.get(suite_id, session)
     architecture = Architecture.get(arch_id, session)
     overridetype = OverrideType.get(overridetype_id, session)
@@ -243,12 +246,13 @@ def binary_helper(suite_id, arch_id, overridetype_id, component_id):
     session.close()
     return log_message
 
+
 def source_helper(suite_id, component_id):
     '''
     This function is called in a new subprocess and multiprocessing wants a top
     level function.
     '''
-    session = DBConn().session(work_mem = 1000)
+    session = DBConn().session(work_mem=1000)
     suite = Suite.get(suite_id, session)
     component = Component.get(component_id, session)
     log_message = [suite.suite_name, 'source', component.component_name]
@@ -256,6 +260,7 @@ def source_helper(suite_id, component_id):
     contents_writer.write_file()
     session.close()
     return log_message
+
 
 class ContentsWriter(object):
     '''
@@ -270,7 +275,7 @@ class ContentsWriter(object):
         class_.logger.log(result)
 
     @classmethod
-    def write_all(class_, logger, archive_names = [], suite_names = [], component_names = [], force = False):
+    def write_all(class_, logger, archive_names=[], suite_names=[], component_names=[], force=False):
         '''
         Writes all Contents files for suites in list suite_names which defaults
         to all 'touchable' suites if not specified explicitely. Untouchable
@@ -287,7 +292,7 @@ class ContentsWriter(object):
         if len(component_names) > 0:
             component_query = component_query.filter(Component.component_name.in_(component_names))
         if not force:
-            suite_query = suite_query.filter(Suite.untouchable == False)
+            suite_query = suite_query.filter(Suite.untouchable == False)  # noqa:E712
         deb_id = get_override_type('deb', session).overridetype_id
         udeb_id = get_override_type('udeb', session).overridetype_id
         pool = Pool()
@@ -302,15 +307,15 @@ class ContentsWriter(object):
                 component_id = component.component_id
                 # handle source packages
                 pool.apply_async(source_helper, (suite_id, component_id),
-                    callback = class_.log_result)
-                for architecture in suite.get_architectures(skipsrc = True, skipall = True):
+                    callback=class_.log_result)
+                for architecture in suite.get_architectures(skipsrc=True, skipall=True):
                     arch_id = architecture.arch_id
                     # handle 'deb' packages
                     pool.apply_async(binary_helper, (suite_id, arch_id, deb_id, component_id), \
-                        callback = class_.log_result)
+                        callback=class_.log_result)
                     # handle 'udeb' packages
                     pool.apply_async(binary_helper, (suite_id, arch_id, udeb_id, component_id), \
-                        callback = class_.log_result)
+                        callback=class_.log_result)
         pool.close()
         pool.join()
         session.close()
@@ -321,6 +326,7 @@ class BinaryContentsScanner(object):
     BinaryContentsScanner provides a threadsafe method scan() to scan the
     contents of a DBBinary object.
     '''
+
     def __init__(self, binary_id):
         '''
         The argument binary_id is the id of the DBBinary object that
@@ -328,7 +334,7 @@ class BinaryContentsScanner(object):
         '''
         self.binary_id = binary_id
 
-    def scan(self, dummy_arg = None):
+    def scan(self, dummy_arg=None):
         '''
         This method does the actual scan and fills in the associated BinContents
         property. It commits any changes to the database. The argument dummy_arg
@@ -340,12 +346,12 @@ class BinaryContentsScanner(object):
         if len(fileset) == 0:
             fileset.add('EMPTY_PACKAGE')
         for filename in fileset:
-            binary.contents.append(BinContents(file = filename))
+            binary.contents.append(BinContents(file=filename))
         session.commit()
         session.close()
 
     @classmethod
-    def scan_all(class_, limit = None):
+    def scan_all(class_, limit=None):
         '''
         The class method scan_all() scans all binaries using multiple threads.
         The number of binaries to be scanned can be limited with the limit
@@ -353,7 +359,7 @@ class BinaryContentsScanner(object):
         dict.
         '''
         session = DBConn().session()
-        query = session.query(DBBinary).filter(DBBinary.contents == None)
+        query = session.query(DBBinary).filter(DBBinary.contents == None) # noqa:E711
         remaining = query.count
         if limit is not None:
             query = query.limit(limit)
@@ -367,6 +373,7 @@ class BinaryContentsScanner(object):
         session.close()
         return { 'processed': processed, 'remaining': remaining }
 
+
 def binary_scan_helper(binary_id):
     '''
     This function runs in a subprocess.
@@ -374,17 +381,19 @@ def binary_scan_helper(binary_id):
     scanner = BinaryContentsScanner(binary_id)
     scanner.scan()
 
+
 class UnpackedSource(object):
     '''
     UnpackedSource extracts a source package into a temporary location and
     gives you some convinient function for accessing it.
     '''
+
     def __init__(self, dscfilename, tmpbasedir=None):
         '''
         The dscfilename is a name of a DSC file that will be extracted.
         '''
         basedir = tmpbasedir if tmpbasedir else Config()['Dir::TempPath']
-        temp_directory = mkdtemp(dir = basedir)
+        temp_directory = mkdtemp(dir=basedir)
         self.root_directory = os.path.join(temp_directory, 'root')
         command = ('dpkg-source', '--no-copy', '--no-check', '-q', '-x',
             dscfilename, self.root_directory)
@@ -439,6 +448,7 @@ class SourceContentsScanner(object):
     SourceContentsScanner provides a method scan() to scan the contents of a
     DBSource object.
     '''
+
     def __init__(self, source_id):
         '''
         The argument source_id is the id of the DBSource object that
@@ -455,12 +465,12 @@ class SourceContentsScanner(object):
         source = session.query(DBSource).get(self.source_id)
         fileset = set(source.scan_contents())
         for filename in fileset:
-            source.contents.append(SrcContents(file = filename))
+            source.contents.append(SrcContents(file=filename))
         session.commit()
         session.close()
 
     @classmethod
-    def scan_all(class_, limit = None):
+    def scan_all(class_, limit=None):
         '''
         The class method scan_all() scans all source using multiple processes.
         The number of sources to be scanned can be limited with the limit
@@ -468,7 +478,7 @@ class SourceContentsScanner(object):
         dict.
         '''
         session = DBConn().session()
-        query = session.query(DBSource).filter(DBSource.contents == None)
+        query = session.query(DBSource).filter(DBSource.contents == None) # noqa:E711
         remaining = query.count
         if limit is not None:
             query = query.limit(limit)
@@ -481,6 +491,7 @@ class SourceContentsScanner(object):
         remaining = remaining()
         session.close()
         return { 'processed': processed, 'remaining': remaining }
+
 
 def source_scan_helper(source_id):
     '''

@@ -30,6 +30,8 @@ from daklib.dak_exceptions import DBUpdateError
 from daklib.config import Config
 
 ################################################################################
+
+
 def do_update(self):
     print __doc__
     try:
@@ -37,7 +39,7 @@ def do_update(self):
 
         c = self.db.cursor()
 
-        c.execute("CREATE SCHEMA world");
+        c.execute("CREATE SCHEMA world")
         c.execute("GRANT USAGE ON SCHEMA world TO PUBLIC")
         c.execute("ALTER DEFAULT PRIVILEGES IN SCHEMA world GRANT SELECT ON TABLES TO PUBLIC")
         c.execute("ALTER DEFAULT PRIVILEGES IN SCHEMA world GRANT ALL ON TABLES TO ftpmaster")
@@ -61,7 +63,6 @@ def do_update(self):
               JOIN component ON fam.component_id = component.id
               WHERE fam.archive_id = (SELECT id FROM archive WHERE name IN ('backports', 'ftp-master', 'security'))
             """)
-
 
         c.execute("UPDATE config SET value = '79' WHERE name = 'db_revision'")
         self.db.commit()

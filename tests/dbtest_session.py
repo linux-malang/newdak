@@ -9,7 +9,9 @@ from sqlalchemy.exc import InvalidRequestError
 import time
 import unittest
 
+
 class SessionTestCase(DBDakTestCase):
+
     """
     This TestCase checks the behaviour of SQLAlchemy's session object. It should
     make sure the SQLAlchemy always works as we expect it. And it might help
@@ -31,7 +33,7 @@ class SessionTestCase(DBDakTestCase):
         self.sleep()
         timestamp02 = self.now()
         self.assertEqual(timestamp01, timestamp02)
-        uid = Uid(uid = 'foobar')
+        uid = Uid(uid='foobar')
         self.session.add(uid)
         self.session.flush()
         self.assertEqual(timestamp01, uid.created)
@@ -39,7 +41,7 @@ class SessionTestCase(DBDakTestCase):
         self.session.rollback()
         timestamp03 = self.now()
         self.assertTrue(timestamp01 < timestamp03)
-        uid = Uid(uid = 'foobar')
+        uid = Uid(uid='foobar')
         self.session.add(uid)
         self.session.flush()
         self.assertTrue(timestamp01 < uid.created)
@@ -51,7 +53,7 @@ class SessionTestCase(DBDakTestCase):
         '''
 
         # test INSERT
-        uid = Uid(uid = 'foobar')
+        uid = Uid(uid='foobar')
         self.assertTrue(uid not in self.session)
         self.session.add(uid)
         self.assertTrue(uid in self.session)
@@ -68,7 +70,7 @@ class SessionTestCase(DBDakTestCase):
         self.session.rollback()
         self.assertTrue(uid not in self.session)
         # test COMMIT
-        uid = Uid(uid = 'foobar')
+        uid = Uid(uid='foobar')
         self.session.add(uid)
         self.assertTrue(uid in self.session.new)
         self.session.commit()
@@ -89,7 +91,7 @@ class SessionTestCase(DBDakTestCase):
         '''
 
         # test expunge()
-        uid = Uid(uid = 'foobar')
+        uid = Uid(uid='foobar')
         self.session.add(uid)
         self.assertTrue(uid in self.session)
         self.session.expunge(uid)
@@ -127,7 +129,7 @@ class SessionTestCase(DBDakTestCase):
         Test the refresh() of an object.
         '''
 
-        self.uid = Uid(uid = 'foobar')
+        self.uid = Uid(uid='foobar')
         self.assertEqual(None, self.uid.uid_id)
         self.session.add(self.uid)
         self.assertEqual(None, self.uid.uid_id)
@@ -141,7 +143,7 @@ class SessionTestCase(DBDakTestCase):
         Tests the ORMObject.session() method.
         '''
 
-        uid = Uid(uid = 'foobar')
+        uid = Uid(uid='foobar')
         self.session.add(uid)
         self.assertEqual(self.session, uid.session())
 
@@ -150,7 +152,7 @@ class SessionTestCase(DBDakTestCase):
         Tests the ORMObject.clone() method.
         '''
 
-        uid1 = Uid(uid = 'foobar')
+        uid1 = Uid(uid='foobar')
         # no session yet
         self.assertRaises(RuntimeError, uid1.clone)
         self.session.add(uid1)
@@ -165,7 +167,7 @@ class SessionTestCase(DBDakTestCase):
         self.assertTrue(uid1 not in uid2.session())
         # test with explicit session parameter
         new_session = DBConn().session()
-        uid3 = uid1.clone(session = new_session)
+        uid3 = uid1.clone(session=new_session)
         self.assertEqual(uid1.uid, uid3.uid)
         self.assertTrue(uid3 in new_session)
         # test for ressource leaks with mass cloning

@@ -38,7 +38,8 @@ Logger = None
 
 ################################################################################
 
-def usage (exit_code=0):
+
+def usage(exit_code=0):
     print("""Usage: dak manage-external-signature-requests [OPTIONS]
 Manage external signature requests such as requests to sign EFI binaries or
 kernel modules.
@@ -49,14 +50,16 @@ kernel modules.
 
 ################################################################################
 
-def main ():
+
+def main():
     global Options, Logger
 
     cnf = Config()
 
     for i in ["Help"]:
-        if not cnf.has_key("Manage-External-Signature-Requests::Options::{}".format(i)):
-            cnf["Manage-External-Signature-Requests::Options::{}".format(i)] = ""
+        key = "Manage-External-Signature-Requests::Options::{}".format(i)
+        if key not in cnf:
+            cnf[key] = ""
 
     Arguments = [('h',"help","Manage-External-Signature-Requests::Options::Help")]
 

@@ -37,6 +37,8 @@ from daklib import utils
 ################################################################################
 
 # Shamelessly stolen from 'dak rm'. Should probably end up in utils.py
+
+
 def game_over():
     answer = utils.our_raw_input("Continue (y/N)? ").lower()
     if answer != "y":
@@ -44,7 +46,7 @@ def game_over():
         sys.exit(1)
 
 
-def usage (exit_code=0):
+def usage(exit_code=0):
     print """Usage: dak override [OPTIONS] package [section] [priority]
 Make microchanges or microqueries of the binary overrides
 
@@ -56,7 +58,8 @@ Make microchanges or microqueries of the binary overrides
 """
     sys.exit(exit_code)
 
-def main ():
+
+def main():
     cnf = Config()
 
     Arguments = [('h',"help","Override::Options::Help"),
@@ -66,9 +69,10 @@ def main ():
                  ('s',"suite","Override::Options::Suite", "HasArg"),
                  ]
     for i in ["help", "check", "no-action"]:
-        if not cnf.has_key("Override::Options::%s" % (i)):
-            cnf["Override::Options::%s" % (i)] = ""
-    if not cnf.has_key("Override::Options::Suite"):
+        key = "Override::Options::%s" % i
+        if key not in cnf:
+            cnf[key] = ""
+    if "Override::Options::Suite" not in cnf:
         cnf["Override::Options::Suite"] = "unstable"
 
     arguments = apt_pkg.parse_commandline(cnf.Cnf, Arguments, sys.argv)
@@ -186,7 +190,7 @@ def main ():
             print "I: Would change priority from %s to %s" % (oldpriority,newpriority)
         if newsection != oldsection:
             print "I: Would change section from %s to %s" % (oldsection,newsection)
-        if Options.has_key("Done"):
+        if "Done" in Options:
             print "I: Would also close bug(s): %s" % (Options["Done"])
 
         sys.exit(0)
@@ -197,7 +201,7 @@ def main ():
     if newsection != oldsection:
         print "I: Will change section from %s to %s" % (oldsection,newsection)
 
-    if not Options.has_key("Done"):
+    if "Done" not in Options:
         pass
         #utils.warn("No bugs to close have been specified. Noone will know you have done this.")
     else:
@@ -236,8 +240,8 @@ def main ():
 
     session.commit()
 
-    if Options.has_key("Done"):
-        if not cnf.has_key("Dinstall::BugServer"):
+    if "Done" in Options:
+        if "Dinstall::BugServer" not in cnf:
             utils.warn("Asked to send Done message but Dinstall::BugServer is not configured")
             Logger.close()
             return
@@ -252,7 +256,7 @@ def main ():
             Subst["__BCC__"] = "Bcc: " + ", ".join(bcc)
         else:
             Subst["__BCC__"] = "X-Filler: 42"
-        if cnf.has_key("Dinstall::PackagesServer"):
+        if "Dinstall::PackagesServer" in cnf:
             Subst["__CC__"] = "Cc: " + package + "@" + cnf["Dinstall::PackagesServer"] + "\nX-DAK: dak override"
         else:
             Subst["__CC__"] = "X-DAK: dak override"

@@ -39,15 +39,19 @@ import sqlalchemy.exc
 import tempfile
 import traceback
 
+
 class ArchiveException(Exception):
     pass
+
 
 class HashMismatchException(ArchiveException):
     pass
 
+
 class ArchiveTransaction(object):
     """manipulate the archive in a transaction
     """
+
     def __init__(self):
         self.fs = FilesystemTransaction()
         self.session = DBConn().session()
@@ -157,7 +161,7 @@ class ArchiveTransaction(object):
         source_query = session.query(DBSource).filter_by(source=source_name, version=source_version)
         source = source_query.filter(DBSource.suites.contains(suite)).first()
         if source is None:
-            if source_suites != True:
+            if source_suites is not True:
                 source_query = source_query.join(DBSource.suites) \
                     .filter(Suite.suite_id == source_suites.c.id)
             source = source_query.first()
@@ -400,7 +404,7 @@ class ArchiveTransaction(object):
         if session.query(ArchiveFile).filter_by(archive=archive, component=component, file=db_file).first() is None:
             query = session.query(ArchiveFile).filter_by(file=db_file)
             if not allow_tainted:
-                query = query.join(Archive).filter(Archive.tainted == False)
+                query = query.join(Archive).filter(Archive.tainted == False)  # noqa:E712
 
             source_af = query.first()
             if source_af is None:
@@ -552,6 +556,7 @@ class ArchiveTransaction(object):
             self.rollback()
         return None
 
+
 def source_component_from_package_list(package_list, suite):
     """Get component for a source package
 
@@ -580,6 +585,7 @@ def source_component_from_package_list(package_list, suite):
             .filter(Component.component_name.in_(components))
     return query.first()
 
+
 class ArchiveUpload(object):
     """handle an upload
 
@@ -591,6 +597,7 @@ class ArchiveUpload(object):
     Doing so will automatically run any required cleanup and also rollback the
     transaction if it was not committed.
     """
+
     def __init__(self, directory, changes, keyrings):
         self.transaction = ArchiveTransaction()
         """transaction used to handle the upload
@@ -846,7 +853,7 @@ class ArchiveUpload(object):
             files.extend(self.changes.source.files.values())
         for f in files:
             query = session.query(ArchiveFile).join(PoolFile).filter(PoolFile.sha1sum == f.sha1sum)
-            query_untainted = query.join(Archive).filter(Archive.tainted == False)
+            query_untainted = query.join(Archive).filter(Archive.tainted == False)  # noqa:E712
 
             in_archive = (query.first() is not None)
             in_untainted_archive = (query_untainted.first() is not None)
@@ -1379,7 +1386,6 @@ class ArchiveUpload(object):
             # There is only one global BYHAND queue
             new_queue = self.transaction.session.query(PolicyQueue).filter_by(queue_name='byhand').one()
         new_suite = new_queue.suite
-
 
         def binary_component_func(binary):
             return self._binary_component(suite, binary, only_overrides=False)

@@ -20,8 +20,11 @@
 
 ################################################################################
 
-import sys, os, re
-import apt_pkg, ldap
+import sys
+import os
+import re
+import apt_pkg
+import ldap
 
 from daklib.config import Config
 from daklib.dbconn import *
@@ -30,6 +33,7 @@ from daklib.dbconn import *
 Options = None
 
 ################################################################################
+
 
 def get_uid_info(session):
     byname = {}
@@ -41,12 +45,14 @@ def get_uid_info(session):
 
     return (byname, byid)
 
+
 def get_fingerprint_info(session):
     fins = {}
     q = session.execute("SELECT f.fingerprint, f.id, f.uid, f.keyring FROM fingerprint f")
     for (fingerprint, fingerprint_id, uid, keyring) in q.fetchall():
         fins[fingerprint] = (uid, fingerprint_id, keyring)
     return fins
+
 
 def list_uids(session, pattern):
     sql_pattern = "%%%s%%" % pattern
@@ -55,17 +61,18 @@ def list_uids(session, pattern):
     print message
     uid_query = session.query(Uid).filter(Uid.uid.ilike(sql_pattern))
     for uid in uid_query.all():
-	print "\nuid %s" % uid.uid
-	for fp in uid.fingerprint:
-	    print "    fingerprint %s" % fp.fingerprint
-	    keyring = "unknown"
-	    if fp.keyring:
-		keyring = fp.keyring.keyring_name
-	    print "        keyring %s" % keyring
+        print "\nuid %s" % uid.uid
+        for fp in uid.fingerprint:
+            print "    fingerprint %s" % fp.fingerprint
+            keyring = "unknown"
+            if fp.keyring:
+                keyring = fp.keyring.keyring_name
+            print "        keyring %s" % keyring
 
 ################################################################################
 
-def usage (exit_code=0):
+
+def usage(exit_code=0):
     print """Usage: dak import-keyring [OPTION]... [KEYRING]
   -h, --help                  show this help and exit.
   -L, --import-ldap-users     generate uid entries for keyring from LDAP
@@ -89,9 +96,10 @@ def main():
                 ]
 
     for i in [ "help", "report-changes", "generate-users",
-	    "import-ldap-users", "list-uids", "no-action" ]:
-        if not cnf.has_key("Import-Keyring::Options::%s" % (i)):
-            cnf["Import-Keyring::Options::%s" % (i)] = ""
+            "import-ldap-users", "list-uids", "no-action" ]:
+        key = "Import-Keyring::Options::%s" % i
+        if key not in cnf:
+            cnf[key] = ""
 
     keyring_names = apt_pkg.parse_commandline(cnf.Cnf, Arguments, sys.argv)
 
@@ -106,8 +114,8 @@ def main():
     session = DBConn().session()
 
     if Options["List-UIDs"]:
-	list_uids(session, Options["List-UIDs"])
-	sys.exit(0)
+        list_uids(session, Options["List-UIDs"])
+        sys.exit(0)
 
     if len(keyring_names) != 1:
         usage(1)
@@ -159,7 +167,7 @@ def main():
     fpr = {}
     for z in keyring.keys.keys():
         keyid = db_uid_byname.get(keyring.keys[z].get("uid", None), [None])[0]
-        if keyid == None:
+        if keyid is None:
             keyid = db_fin_info.get(keyring.keys[z]["fingerprints"][0], [None])[0]
         for y in keyring.keys[z]["fingerprints"]:
             fpr[y] = (keyid, keyring.keyring_id)
@@ -189,10 +197,10 @@ def main():
 
         (olduid, oldfid, oldkid) = db_fin_info.get(f, [-1,-1,-1])
 
-        if olduid == None:
+        if olduid is None:
             olduid = -1
 
-        if oldkid == None:
+        if oldkid is None:
             oldkid = -1
 
         if oldfid == -1:
@@ -245,9 +253,9 @@ def main():
 
     # All done!
     if Options["No-Action"]:
-	session.rollback()
+        session.rollback()
     else:
-	session.commit()
+        session.commit()
 
     # Print a summary
     changesd = {}

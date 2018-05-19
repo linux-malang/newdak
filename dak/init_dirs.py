@@ -21,7 +21,8 @@
 
 from __future__ import print_function
 
-import os, sys
+import os
+import sys
 import apt_pkg
 from daklib import utils
 from daklib.dbconn import *
@@ -31,6 +32,7 @@ from daklib.dbconn import *
 Cnf = None
 
 ################################################################################
+
 
 def usage(exit_code=0):
     """Print a usage message and exit with 'exit_code'."""
@@ -42,6 +44,7 @@ Creates directories for an archive based on dak.conf configuration file.
     sys.exit(exit_code)
 
 ################################################################################
+
 
 def do_dir(target, config_name):
     """If 'target' exists, make sure it is a directory.  If it doesn't, create
@@ -55,12 +58,14 @@ it."""
         print("Creating {} ...".format(target))
         os.makedirs(target)
 
+
 def process_file(config, config_name):
     """Create directories for a config entry that's a filename."""
 
-    if config.has_key(config_name):
+    if config_name in config:
         target = os.path.dirname(config[config_name])
         do_dir(target, config_name)
+
 
 def process_tree(config, tree):
     """Create directories for a config tree."""
@@ -71,13 +76,15 @@ def process_tree(config, tree):
         target = config[config_name]
         do_dir(target, config_name)
 
+
 def process_morguesubdir(subdir):
     """Create directories for morgue sub directories."""
 
     config_name = "%s::MorgueSubDir" % (subdir)
-    if Cnf.has_key(config_name):
+    if config_name in Cnf:
         target = os.path.join(Cnf["Dir::Morgue"], Cnf[config_name])
         do_dir(target, config_name)
+
 
 def process_keyring(fullpath, secret=False):
     """Create empty keyring if necessary."""
@@ -104,6 +111,7 @@ def process_keyring(fullpath, secret=False):
 
 ######################################################################
 
+
 def create_directories():
     """Create directories referenced in dak.conf."""
 
@@ -113,7 +121,7 @@ def create_directories():
     process_tree(Cnf, "Dir")
 
     # Hardcode creation of the unchecked directory
-    if Cnf.has_key("Dir::Base"):
+    if "Dir::Base" in Cnf:
         do_dir(os.path.join(Cnf["Dir::Base"], "queue", "unchecked"), 'unchecked directory')
 
     # Process queue directories
@@ -133,10 +141,10 @@ def create_directories():
     suite_suffix = "%s" % (Cnf.find("Dinstall::SuiteSuffix"))
 
     # Process secret keyrings
-    if Cnf.has_key('Dinstall::SigningKeyring'):
+    if 'Dinstall::SigningKeyring' in Cnf:
         process_keyring(Cnf['Dinstall::SigningKeyring'], secret=True)
 
-    if Cnf.has_key('Dinstall::SigningPubKeyring'):
+    if 'Dinstall::SigningPubKeyring' in Cnf:
         process_keyring(Cnf['Dinstall::SigningPubKeyring'], secret=True)
 
     # Process public keyrings
@@ -168,7 +176,8 @@ def create_directories():
 
 ################################################################################
 
-def main ():
+
+def main():
     """Initial setup of an archive."""
 
     global Cnf
@@ -176,8 +185,9 @@ def main ():
     Cnf = utils.get_conf()
     arguments = [('h', "help", "Init-Dirs::Options::Help")]
     for i in [ "help" ]:
-        if not Cnf.has_key("Init-Dirs::Options::%s" % (i)):
-            Cnf["Init-Dirs::Options::%s" % (i)] = ""
+        key = "Init-Dirs::Options::%s" % i
+        if key not in Cnf:
+            Cnf[key] = ""
 
     d = DBConn()
 

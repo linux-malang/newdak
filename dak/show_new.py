@@ -26,7 +26,9 @@
 ################################################################################
 
 from copy import copy
-import os, sys, time
+import os
+import sys
+import time
 import apt_pkg
 import examine_package
 
@@ -133,6 +135,7 @@ def html_header(name, missing):
     result += "    </div>"
     return result
 
+
 def html_footer():
     result = """    <p class="validate">Timestamp: %s (UTC)</p>
 """% (time.strftime("%d.%m.%Y / %H:%M:%S", time.gmtime()))
@@ -160,11 +163,11 @@ def do_pkg(upload_id):
     # Have we already processed this?
     if os.path.exists(htmlfile) and \
         os.stat(htmlfile).st_mtime > time.mktime(changes.created.timetuple()):
-            with open(htmlfile, "r") as fd:
-                if fd.read() != timeout_str:
-                    sources.append(htmlname)
-                    return (PROC_STATUS_SUCCESS,
-                            '%s already up-to-date' % htmlfile)
+        with open(htmlfile, "r") as fd:
+            if fd.read() != timeout_str:
+                sources.append(htmlname)
+                return (PROC_STATUS_SUCCESS,
+                        '%s already up-to-date' % htmlfile)
 
     # Go, process it... Now!
     htmlfiles_to_process.append(htmlfile)
@@ -172,8 +175,8 @@ def do_pkg(upload_id):
 
     group = cnf.get('Dinstall::UnprivGroup') or None
 
-    with open(htmlfile, 'w') as outfile:
-      with policy.UploadCopy(upload, group=group) as upload_copy:
+    with open(htmlfile, 'w') as outfile, \
+            policy.UploadCopy(upload, group=group) as upload_copy:
         handler = policy.PolicyQueueUploadHandler(upload, session)
         missing = [ (o['type'], o['package']) for o in handler.missing_overrides() ]
         distribution = changes.distribution
@@ -198,7 +201,8 @@ def do_pkg(upload_id):
 
 ################################################################################
 
-def usage (exit_code=0):
+
+def usage(exit_code=0):
     print """Usage: dak show-new [OPTION]... [CHANGES]...
   -h, --help                show this help and exit.
   -p, --html-path [path]    override output directory.
@@ -206,6 +210,7 @@ def usage (exit_code=0):
     sys.exit(exit_code)
 
 ################################################################################
+
 
 def init(session):
     global cnf, Options
@@ -217,8 +222,9 @@ def init(session):
                  ('q','queue','Show-New::Options::Queue','HasArg')]
 
     for i in ["help"]:
-        if not cnf.has_key("Show-New::Options::%s" % (i)):
-            cnf["Show-New::Options::%s" % (i)] = ""
+        key = "Show-New::Options::%s" % i
+        if key not in cnf:
+            cnf[key] = ""
 
     changesnames = apt_pkg.parse_commandline(cnf.Cnf,Arguments,sys.argv)
     Options = cnf.subtree("Show-New::Options")

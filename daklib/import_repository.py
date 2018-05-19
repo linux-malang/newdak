@@ -34,40 +34,51 @@ from sqlalchemy.orm import object_session
 
 _release_hashes_fields = ('MD5Sum', 'SHA1', 'SHA256')
 
+
 class Release(object):
     def __init__(self, base, suite_name, data):
         self._base = base
         self._suite_name = suite_name
         self._dict = apt_pkg.TagSection(data)
         self._hashes = daklib.upload.parse_file_list(self._dict, False, daklib.regexes.re_file_safe_slash, _release_hashes_fields)
+
     def architectures(self):
         return self._dict['Architectures'].split()
+
     def components(self):
         return self._dict['Components'].split()
+
     def packages(self, component, architecture):
         fn = '{0}/binary-{1}/Packages'.format(component, architecture)
         tmp = obtain_release_file(self, fn)
         return apt_pkg.TagFile(tmp.fh())
+
     def sources(self, component):
         fn = '{0}/source/Sources'.format(component)
         tmp = obtain_release_file(self, fn)
         return apt_pkg.TagFile(tmp.fh())
+
     def suite(self):
         return self._dict['Suite']
+
     def codename(self):
         return self._dict['Codename']
     # TODO: Handle Date/Valid-Until to make sure we import
     # a newer version than before
 
+
 class File(object):
     def __init__(self):
         config = daklib.config.Config()
         self._tmp = tempfile.NamedTemporaryFile(dir=config['Dir::TempPath'])
+
     def fh(self):
         self._tmp.seek(0)
         return self._tmp
+
     def hashes(self):
         return apt_pkg.Hashes(self.fh())
+
 
 def obtain_file(base, path):
     """Obtain a file 'path' located below 'base'
@@ -87,6 +98,7 @@ def obtain_file(base, path):
             shutil.copyfileobj(fh, tmp._tmp)
     return tmp
 
+
 def obtain_release(base, suite_name, keyring, fingerprint=None):
     """Obtain release information
 
@@ -101,6 +113,7 @@ def obtain_release(base, suite_name, keyring, fingerprint=None):
     return r
 
 _compressions = ('.xz', '.gz', '.bz2')
+
 
 def obtain_release_file(release, filename):
     """Obtain file referenced from Release
@@ -131,6 +144,7 @@ def obtain_release_file(release, filename):
         tmp = tmp2
 
     return tmp
+
 
 def import_source_to_archive(base, entry, transaction, archive, component):
     """Import source package described by 'entry' into the given 'archive' and 'component'
@@ -169,6 +183,7 @@ def import_source_to_archive(base, entry, transaction, archive, component):
 
     return db_source
 
+
 def import_package_to_suite(base, entry, transaction, suite, component):
     """Import binary package described by 'entry' into the given 'suite' and 'component'
 
@@ -192,6 +207,7 @@ def import_package_to_suite(base, entry, transaction, suite, component):
 
     return db_binary
 
+
 def import_source_to_suite(base, entry, transaction, suite, component):
     """Import source package described by 'entry' into the given 'suite' and 'component'
 
@@ -204,6 +220,7 @@ def import_source_to_suite(base, entry, transaction, suite, component):
     source = import_source_to_archive(base, entry, transaction, suite.archive, component)
     source.suites.append(suite)
     transaction.flush()
+
 
 def source_in_archive(source, version, archive, component=None):
     """Check that source package 'source' with version 'version' exists in 'archive',

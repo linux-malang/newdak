@@ -30,6 +30,8 @@ from daklib.dak_exceptions import DBUpdateError
 from daklib.config import Config
 
 ################################################################################
+
+
 def do_update(self):
     print __doc__
     try:
@@ -37,7 +39,7 @@ def do_update(self):
 
         c = self.db.cursor()
 
-        c.execute("ALTER TABLE suite ADD COLUMN mail_whitelist TEXT");
+        c.execute("ALTER TABLE suite ADD COLUMN mail_whitelist TEXT")
 
         c.execute("UPDATE config SET value = '88' WHERE name = 'db_revision'")
         self.db.commit()

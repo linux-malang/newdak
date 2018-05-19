@@ -61,7 +61,8 @@ Options = None
 
 ################################################################################
 
-def usage (exit_code=0):
+
+def usage(exit_code=0):
     print """Usage: dak rm [OPTIONS] PACKAGE[...]
 Remove PACKAGE(s) from suite(s).
 
@@ -94,6 +95,7 @@ ARCH, BUG#, COMPONENT and SUITE can be comma (or space) separated lists, e.g.
 #  man...That's it man, game over man, game over, man! Game over! What
 #  the fuck are we gonna do now? What are we gonna do?"
 
+
 def game_over():
     answer = utils.our_raw_input("Continue (y/N)? ").lower()
     if answer != "y":
@@ -101,6 +103,7 @@ def game_over():
         sys.exit(1)
 
 ################################################################################
+
 
 def reverse_depends_check(removals, suite, arches=None, session=None, include_arch_all=True):
     print "Checking reverse dependencies..."
@@ -114,7 +117,8 @@ def reverse_depends_check(removals, suite, arches=None, session=None, include_ar
 
 ################################################################################
 
-def main ():
+
+def main():
     global Options
 
     cnf = Config()
@@ -140,9 +144,10 @@ def main ():
                "architecture", "binary", "binary-only", "carbon-copy", "component",
                "done", "help", "no-action", "partial", "rdep-check", "reason",
                "source-only", "Do-Close" ]:
-        if not cnf.has_key("Rm::Options::%s" % (i)):
-            cnf["Rm::Options::%s" % (i)] = ""
-    if not cnf.has_key("Rm::Options::Suite"):
+        key = "Rm::Options::%s" % (i)
+        if key not in cnf:
+            cnf[key] = ""
+    if "Rm::Options::Suite" not in cnf:
         cnf["Rm::Options::Suite"] = "unstable"
 
     arguments = apt_pkg.parse_commandline(cnf.Cnf, Arguments, sys.argv)
@@ -162,7 +167,7 @@ def main ():
             or (Options["Binary"] and Options["Binary-Only"])
             or (Options["Binary-Only"] and Options["Source-Only"])):
         utils.fubar("Only one of -b/--binary, -B/--binary-only and -S/--source-only can be used.")
-    if Options.has_key("Carbon-Copy") and not Options.has_key("Done"):
+    if "Carbon-Copy" not in Options and "Done" not in Options:
         utils.fubar("can't use -C/--carbon-copy without also using -d/--done option.")
     if Options["Architecture"] and not Options["Partial"]:
         utils.warn("-a/--architecture implies -p/--partial.")
@@ -288,13 +293,13 @@ def main ():
     carbon_copy = []
     for copy_to in utils.split_args(Options.get("Carbon-Copy")):
         if copy_to.isdigit():
-            if cnf.has_key("Dinstall::BugServer"):
+            if "Dinstall::BugServer" in cnf:
                 carbon_copy.append(copy_to + "@" + cnf["Dinstall::BugServer"])
             else:
                 utils.fubar("Asked to send mail to #%s in BTS but Dinstall::BugServer is not configured" % copy_to)
         elif copy_to == 'package':
             for package in set([s[5] for s in to_remove]):
-                if cnf.has_key("Dinstall::PackagesServer"):
+                if "Dinstall::PackagesServer" in cnf:
                     carbon_copy.append(package + "@" + cnf["Dinstall::PackagesServer"])
         elif '@' in copy_to:
             carbon_copy.append(copy_to)
@@ -308,7 +313,7 @@ def main ():
         editor = os.environ.get("EDITOR","vi")
         result = os.system("%s %s" % (editor, temp_filename))
         if result != 0:
-            utils.fubar ("vi invocation failed for `%s'!" % (temp_filename), result)
+            utils.fubar("vi invocation failed for `%s'!" % (temp_filename), result)
         temp_file = utils.open_file(temp_filename)
         for line in temp_file.readlines():
             Options["Reason"] += line
@@ -323,9 +328,9 @@ def main ():
         architecture = i[2]
         maintainer = i[4]
         maintainers[maintainer] = ""
-        if not d.has_key(package):
+        if package not in d:
             d[package] = {}
-        if not d[package].has_key(version):
+        if version not in d[package]:
             d[package][version] = []
         if architecture not in d[package][version]:
             d[package][version].append(architecture)

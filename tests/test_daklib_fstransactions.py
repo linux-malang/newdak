@@ -29,18 +29,23 @@ import tempfile
 class TemporaryDirectory:
     def __init__(self):
         self.directory = None
+
     def __str__(self):
         return self.directory
+
     def filename(self, suffix):
         return os.path.join(self.directory, suffix)
+
     def __enter__(self):
         self.directory = tempfile.mkdtemp()
         return self
+
     def __exit__(self, *args):
         if self.directory is not None:
             shutil.rmtree(self.directory)
             self.directory = None
         return None
+
 
 class FilesystemTransactionTestCase(DakTestCase):
     def _copy_a_b(self, tmp, fs, **kwargs):

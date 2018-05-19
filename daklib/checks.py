@@ -37,12 +37,12 @@ import apt_inst
 import apt_pkg
 from apt_pkg import version_compare
 import datetime
-import errno
 import os
 import subprocess
 import textwrap
 import time
 import yaml
+
 
 def check_fields_for_valid_utf8(filename, control):
     """Check all fields of a control file for valid UTF-8"""
@@ -53,9 +53,11 @@ def check_fields_for_valid_utf8(filename, control):
         except UnicodeDecodeError:
             raise Reject('{0}: The {1} field is not valid UTF-8'.format(filename, field))
 
+
 class Reject(Exception):
     """exception raised by failing checks"""
     pass
+
 
 class RejectExternalFilesMismatch(Reject):
     """exception raised by failing the external hashes check"""
@@ -63,14 +65,17 @@ class RejectExternalFilesMismatch(Reject):
     def __str__(self):
         return "'%s' has mismatching %s from the external files db ('%s' [current] vs '%s' [external])" % self.args[:4]
 
+
 class RejectACL(Reject):
     """exception raise by failing ACL checks"""
+
     def __init__(self, acl, reason):
         self.acl = acl
         self.reason = reason
 
     def __str__(self):
         return "ACL {0}: {1}".format(self.acl.name, self.reason)
+
 
 class Check(object):
     """base class for checks
@@ -79,6 +84,7 @@ class Check(object):
     raise a L{daklib.checks.Reject} exception including a human-readable
     description why the upload should be rejected.
     """
+
     def check(self, upload):
         """do checks
 
@@ -88,6 +94,7 @@ class Check(object):
         @raise daklib.checks.Reject: upload should be rejected
         """
         raise NotImplemented
+
     def per_suite_check(self, upload, suite):
         """do per-suite checks
 
@@ -100,6 +107,7 @@ class Check(object):
         @raise daklib.checks.Reject: upload should be rejected
         """
         raise NotImplemented
+
     @property
     def forcable(self):
         """allow to force ignore failing test
@@ -108,6 +116,7 @@ class Check(object):
         C{False} otherwise
         """
         return False
+
 
 class SignatureAndHashesCheck(Check):
     def check_replay(self, upload):
@@ -124,6 +133,7 @@ class SignatureAndHashesCheck(Check):
 
     Make sure the signature is valid and done by a known user.
     """
+
     def check(self, upload):
         changes = upload.changes
         if not changes.valid_signature:
@@ -157,6 +167,7 @@ class SignatureAndHashesCheck(Check):
     @type  files: sequence of L{daklib.upload.HashedFile}
     @param files: files to check the hashes for
     """
+
     def _check_hashes(self, upload, filename, files):
         try:
             for f in files:
@@ -168,8 +179,10 @@ class SignatureAndHashesCheck(Check):
         except daklib.upload.UploadException as e:
             raise Reject('{0}: {1}'.format(filename, unicode(e)))
 
+
 class WeakSignatureCheck(Check):
     """Check that .changes and .dsc are not signed using a weak algorithm"""
+
     def check(self, upload):
         changes = upload.changes
         if changes.weak_signature:
@@ -182,8 +195,10 @@ class WeakSignatureCheck(Check):
 
         return True
 
+
 class SignatureTimestampCheck(Check):
     """Check timestamp of .changes signature"""
+
     def check(self, upload):
         changes = upload.changes
 
@@ -201,8 +216,10 @@ class SignatureTimestampCheck(Check):
 
         return True
 
+
 class ChangesCheck(Check):
     """Check changes file for syntax errors."""
+
     def check(self, upload):
         changes = upload.changes
         control = changes.changes
@@ -265,6 +282,7 @@ class ChangesCheck(Check):
 
         return True
 
+
 class SuffixCheck(Check):
     """Checks suffix of .changes and .buildinfo files.
 
@@ -273,6 +291,7 @@ class SuffixCheck(Check):
     (for example in policy queues where dak stores the .changes and .buildinfo for later
     processing)
     """
+
     def check(self, upload):
         session = upload.session
         changes = upload.changes
@@ -296,8 +315,10 @@ class SuffixCheck(Check):
 
         return True
 
+
 class ExternalHashesCheck(Check):
     """Checks hashes in .changes and .dsc against an external database."""
+
     def check_single(self, session, f):
         q = session.execute("SELECT size, md5sum, sha1sum, sha256sum FROM external_files WHERE filename LIKE :pattern", {'pattern': '%/{}'.format(f.filename)})
         (ext_size, ext_md5sum, ext_sha1sum, ext_sha256sum) = q.fetchone() or (None, None, None, None)
@@ -333,8 +354,10 @@ class ExternalHashesCheck(Check):
             for f in source.files.itervalues():
                 self.check_single(session, f)
 
+
 class BinaryCheck(Check):
     """Check binary packages for syntax errors."""
+
     def check(self, upload):
         debug_deb_name_postfix = "-dbgsym"
         # XXX: Handle dynamic debug section name here
@@ -453,12 +476,14 @@ class BinaryCheck(Check):
         if multi_arch == 'no':
             raise Reject('{0}: Multi-Arch: no support in Debian is broken (#768353)'.format(fn))
 
+
 class BinaryTimestampCheck(Check):
     """check timestamps of files in binary packages
 
     Files in the near future cause ugly warnings and extreme time travel
     can cause errors on extraction.
     """
+
     def check(self, upload):
         cnf = Config()
         future_cutoff = time.time() + cnf.find_i('Dinstall::FutureTimeTravelGrace', 24*3600)
@@ -491,8 +516,10 @@ class BinaryTimestampCheck(Check):
             if tar.past_files:
                 raise Reject(format_reason(filename, 'past', tar.past_files))
 
+
 class SourceCheck(Check):
     """Check source package for syntax errors."""
+
     def check_filename(self, control, filename, regex):
         # In case we have an .orig.tar.*, we have to strip the Debian revison
         # from the version number. So handle this special case first.
@@ -564,11 +591,14 @@ class SourceCheck(Check):
 
         return True
 
+
 class SingleDistributionCheck(Check):
     """Check that the .changes targets only a single distribution."""
+
     def check(self, upload):
         if len(upload.changes.distributions) != 1:
             raise Reject("Only uploads to a single distribution are allowed.")
+
 
 class ACLCheck(Check):
     """Check the uploader is allowed to upload the packages in .changes"""
@@ -650,7 +680,7 @@ class ACLCheck(Check):
 
         for acl in session.query(ACL).filter_by(is_global=True):
             result, reason = self._check_acl(session, upload, acl)
-            if result == False:
+            if result is False:
                 raise RejectACL(acl, reason)
 
         return True
@@ -661,15 +691,17 @@ class ACLCheck(Check):
             accept = False
             for acl in acls:
                 result, reason = self._check_acl(upload.session, upload, acl)
-                if result == False:
+                if result is False:
                     raise Reject(reason)
                 accept = accept or result
             if not accept:
                 raise Reject('Not accepted by any per-suite acl (suite={0})'.format(suite.suite_name))
         return True
 
+
 class TransitionCheck(Check):
     """check for a transition"""
+
     def check(self, upload):
         if 'source' not in upload.changes.architectures:
             return True
@@ -737,6 +769,7 @@ transition is done.""".format(transition_source, currentlymsg, expected,t["rm"])
 
         return None
 
+
 class NoSourceOnlyCheck(Check):
     def is_source_only_upload(self, upload):
         changes = upload.changes
@@ -761,6 +794,7 @@ class NoSourceOnlyCheck(Check):
     allowed if Dinstall::AllowNoArchIndepUploads is set.
 
     """
+
     def check(self, upload):
         if not self.is_source_only_upload(upload):
             return True
@@ -796,8 +830,10 @@ class NoSourceOnlyCheck(Check):
 
         return True
 
+
 class ArchAllBinNMUCheck(Check):
     """Check for arch:all binNMUs"""
+
     def check(self, upload):
         changes = upload.changes
 
@@ -806,8 +842,10 @@ class ArchAllBinNMUCheck(Check):
 
         return True
 
+
 class LintianCheck(Check):
     """Check package using lintian"""
+
     def check(self, upload):
         changes = upload.changes
 
@@ -867,8 +905,10 @@ class LintianCheck(Check):
 
         return True
 
+
 class SourceFormatCheck(Check):
     """Check source format is allowed in the target suite"""
+
     def per_suite_check(self, upload, suite):
         source = upload.changes.source
         session = upload.session
@@ -880,6 +920,7 @@ class SourceFormatCheck(Check):
         if query.first() is None:
             raise Reject('source format {0} is not allowed in suite {1}'.format(source_format, suite.suite_name))
 
+
 class SuiteCheck(Check):
     def per_suite_check(self, upload, suite):
         if not suite.accept_source_uploads and upload.changes.source is not None:
@@ -887,6 +928,7 @@ class SuiteCheck(Check):
         if not suite.accept_binary_uploads and len(upload.changes.binaries) != 0:
             raise Reject('The suite "{0}" does not accept binary uploads.'.format(suite.suite_name))
         return True
+
 
 class SuiteArchitectureCheck(Check):
     def per_suite_check(self, upload, suite):
@@ -898,8 +940,10 @@ class SuiteArchitectureCheck(Check):
 
         return True
 
+
 class VersionCheck(Check):
     """Check version constraints"""
+
     def _highest_source_version(self, session, source_name, suite):
         db_source = session.query(DBSource).filter_by(source=source_name) \
             .filter(DBSource.suites.contains(suite)).order_by(DBSource.version.desc()).first()

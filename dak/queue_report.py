@@ -58,6 +58,7 @@ row_number = 0
 
 ################################################################################
 
+
 def usage(exit_code=0):
     print """Usage: dak queue-report
 Prints a report of packages in queues (usually new and byhand).
@@ -82,6 +83,7 @@ Prints a report of packages in queues (usually new and byhand).
 
 ################################################################################
 
+
 def plural(x):
     if x > 1:
         return "s"
@@ -89,6 +91,7 @@ def plural(x):
         return ""
 
 ################################################################################
+
 
 def time_pp(x):
     if x < 60:
@@ -116,7 +119,8 @@ def time_pp(x):
 
 ################################################################################
 
-def sg_compare (a, b):
+
+def sg_compare(a, b):
     a = a[1]
     b = b[1]
     # Sort by have pending action, have note, time of oldest upload.
@@ -140,6 +144,7 @@ def sg_compare (a, b):
     return cmp(a["oldest"], b["oldest"])
 
 ############################################################
+
 
 def sortfunc(a,b):
     for sorting in direction:
@@ -177,6 +182,7 @@ def sortfunc(a,b):
     return 0
 
 ############################################################
+
 
 def header():
     print """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
@@ -234,6 +240,7 @@ def header():
     </div>
     """
 
+
 def footer():
     print "<p class=\"timestamp\">Timestamp: %s (UTC)</p>" % (time.strftime("%d.%m.%Y / %H:%M:%S", time.gmtime()))
     print "<p class=\"timestamp\">There are <a href=\"/stat.html\">graphs about the queues</a> available.</p>"
@@ -246,6 +253,7 @@ def footer():
       for possible reasons why one of the above packages may get rejected.</p>
     </div> </body> </html>
     """
+
 
 def table_header(type, source_count, total_count):
     print "<h1 class='sourceNEW'>Summary for: %s</h1>" % (type)
@@ -271,6 +279,7 @@ def table_header(type, source_count, total_count):
       </thead>
       <tbody>
     """
+
 
 def table_footer(type):
     print "</tbody></table>"
@@ -337,6 +346,7 @@ def table_row(source, version, arch, last_mod, maint, distribution, closes, fing
 
 ############################################################
 
+
 def update_graph_database(rrd_dir, type, n_source, n_binary):
     if not rrd_dir:
         return
@@ -373,6 +383,7 @@ RRA:MAX:0.5:288:795
 
 ############################################################
 
+
 def process_queue(queue, log, rrd_dir):
     msg = ""
     type = queue.queue_name
@@ -401,7 +412,7 @@ def process_queue(queue, log, rrd_dir):
         have_note = 0
         for d in per_source[source]["list"]:
             mtime = time.mktime(d.changes.created.timetuple())
-            if Cnf.has_key("Queue-Report::Options::New"):
+            if "Queue-Report::Options::New" in Cnf:
                 if mtime > oldest:
                     oldest = mtime
             else:
@@ -450,11 +461,11 @@ def process_queue(queue, log, rrd_dir):
             dbc = j.changes
             changesbase = dbc.changesname
 
-            if Cnf.has_key("Queue-Report::Options::New") or Cnf.has_key("Queue-Report::Options::822"):
+            if "Queue-Report::Options::New" in Cnf or "Queue-Report::Options::822" in Cnf:
                 try:
                     (maintainer["maintainer822"], maintainer["maintainer2047"],
                     maintainer["maintainername"], maintainer["maintaineremail"]) = \
-                    fix_maintainer (dbc.maintainer)
+                    fix_maintainer(dbc.maintainer)
                 except ParseMaintError as msg:
                     print "Problems while parsing maintainer address\n"
                     maintainer["maintainername"] = "Unknown"
@@ -464,11 +475,11 @@ def process_queue(queue, log, rrd_dir):
                 try:
                     (changeby["changedby822"], changeby["changedby2047"],
                      changeby["changedbyname"], changeby["changedbyemail"]) = \
-                     fix_maintainer (dbc.changedby)
+                        fix_maintainer(dbc.changedby)
                 except ParseMaintError as msg:
                     (changeby["changedby822"], changeby["changedby2047"],
                      changeby["changedbyname"], changeby["changedbyemail"]) = \
-                     ("", "", "", "")
+                        ("", "", "", "")
                 changedby = "%s:%s" % (changeby["changedbyname"], changeby["changedbyemail"])
 
                 distribution = dbc.distribution.split()
@@ -508,13 +519,13 @@ def process_queue(queue, log, rrd_dir):
 
     # Look for the options for sort and then do the sort.
     age = "h"
-    if Cnf.has_key("Queue-Report::Options::Age"):
+    if "Queue-Report::Options::Age" in Cnf:
         age =  Cnf["Queue-Report::Options::Age"]
-    if Cnf.has_key("Queue-Report::Options::New"):
+    if "Queue-Report::Options::New" in Cnf:
     # If we produce html we always have oldest first.
         direction.append([6,-1,"ao"])
     else:
-        if Cnf.has_key("Queue-Report::Options::Sort"):
+        if "Queue-Report::Options::Sort" in Cnf:
             for i in Cnf["Queue-Report::Options::Sort"].split(","):
                 if i == "ao":
                     # Age, oldest first.
@@ -540,7 +551,7 @@ def process_queue(queue, log, rrd_dir):
     # have with it. (If you combine options it will simply take the last one at the moment).
     # Will be enhanced in the future.
 
-    if Cnf.has_key("Queue-Report::Options::822"):
+    if "Queue-Report::Options::822" in Cnf:
         # print stuff out in 822 format
         for entry in entries:
             (source, binary, version_list, arch_list, processed, note, last_modified, maint, distribution, closes, fingerprint, sponsor, changedby, changes_file) = entry
@@ -579,7 +590,7 @@ def process_queue(queue, log, rrd_dir):
     total_count = len(queue.uploads)
     source_count = len(per_source_items)
 
-    if Cnf.has_key("Queue-Report::Options::New"):
+    if "Queue-Report::Options::New" in Cnf:
         direction.append([6,1,"ao"])
         entries.sort(sortfunc)
         # Output for a html file. First table header. then table_footer.
@@ -590,7 +601,7 @@ def process_queue(queue, log, rrd_dir):
                 (source, binary, version_list, arch_list, processed, note, last_modified, maint, distribution, closes, fingerprint, sponsor, changedby, _) = entry
                 table_row(source, version_list, arch_list, last_modified, maint, distribution, closes, fingerprint, sponsor, changedby)
             table_footer(type.upper())
-    elif not Cnf.has_key("Queue-Report::Options::822"):
+    elif "Queue-Report::Options::822" not in Cnf:
     # The "normal" output without any formatting.
         msg = ""
         for entry in entries:
@@ -615,6 +626,7 @@ def process_queue(queue, log, rrd_dir):
 
 ################################################################################
 
+
 def main():
     global Cnf
 
@@ -627,8 +639,9 @@ def main():
                  ('r',"rrd","Queue-Report::Options::Rrd", "HasArg"),
                  ('d',"directories","Queue-Report::Options::Directories", "HasArg")]
     for i in [ "help" ]:
-        if not Cnf.has_key("Queue-Report::Options::%s" % (i)):
-            Cnf["Queue-Report::Options::%s" % (i)] = ""
+        key = "Queue-Report::Options::%s" % i
+        if key not in Cnf:
+            Cnf[key] = ""
 
     apt_pkg.parse_commandline(Cnf, Arguments, sys.argv)
 
@@ -636,28 +649,28 @@ def main():
     if Options["Help"]:
         usage()
 
-    if Cnf.has_key("Queue-Report::Options::New"):
+    if "Queue-Report::Options::New" in Cnf:
         header()
 
     queue_names = []
 
-    if Cnf.has_key("Queue-Report::Options::Directories"):
+    if "Queue-Report::Options::Directories" in Cnf:
         for i in Cnf["Queue-Report::Options::Directories"].split(","):
             queue_names.append(i)
-    elif Cnf.has_key("Queue-Report::Directories"):
+    elif "Queue-Report::Directories" in Cnf:
         queue_names = Cnf.value_list("Queue-Report::Directories")
     else:
         queue_names = [ "byhand", "new" ]
 
-    if Cnf.has_key("Queue-Report::Options::Rrd"):
+    if "Queue-Report::Options::Rrd" in Cnf:
         rrd_dir = Cnf["Queue-Report::Options::Rrd"]
-    elif Cnf.has_key("Dir::Rrd"):
+    elif "Dir::Rrd" in Cnf:
         rrd_dir = Cnf["Dir::Rrd"]
     else:
         rrd_dir = None
 
     f = None
-    if Cnf.has_key("Queue-Report::Options::822"):
+    if "Queue-Report::Options::822" in Cnf:
         # Open the report file
         f = sys.stdout
         filename822 = Cnf.get("Queue-Report::ReportLocations::822Location")
@@ -673,10 +686,10 @@ def main():
         else:
             utils.warn("Cannot find queue %s" % queue_name)
 
-    if Cnf.has_key("Queue-Report::Options::822"):
+    if "Queue-Report::Options::822" in Cnf:
         f.close()
 
-    if Cnf.has_key("Queue-Report::Options::New"):
+    if "Queue-Report::Options::New" in Cnf:
         footer()
 
 ################################################################################

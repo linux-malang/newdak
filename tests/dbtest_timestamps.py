@@ -2,12 +2,14 @@
 
 from db_test import DBDakTestCase
 
-from daklib.dbconn import DBConn, Uid
+from daklib.dbconn import Uid
 
 import time
 import unittest
 
+
 class TimestampTestCase(DBDakTestCase):
+
     """
     TimestampTestCase checks that the timestamps created and modified are
     working correctly.
@@ -22,7 +24,7 @@ class TimestampTestCase(DBDakTestCase):
         timestamp01 = self.now()
         self.session.rollback()
         self.sleep()
-        uid = Uid(uid = 'ftp-master@debian.org')
+        uid = Uid(uid='ftp-master@debian.org')
         self.session.add(uid)
         self.session.commit()
         created01 = uid.created

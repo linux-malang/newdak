@@ -40,7 +40,8 @@ Logger = None
 ################################################################################
 ################################################################################
 
-def usage (exit_code=0):
+
+def usage(exit_code=0):
     print """Usage: dak archive-dedup-pool [OPTION]...
   -h, --help                show this help and exit.
   -V, --version             display the version number and exit
@@ -48,6 +49,7 @@ def usage (exit_code=0):
     sys.exit(exit_code)
 
 ################################################################################
+
 
 def dedup_one(size, reference, *filenames):
     stat_reference = os.stat(reference)
@@ -83,6 +85,7 @@ def dedup_one(size, reference, *filenames):
 
 ################################################################################
 
+
 def dedup(session):
     results = session.execute("""
 SELECT DISTINCT *
@@ -113,6 +116,7 @@ SELECT DISTINCT *
 
 ################################################################################
 
+
 def main():
     global Options, Logger
 
@@ -124,8 +128,9 @@ def main():
     apt_pkg.parse_commandline(cnf.Cnf,Arguments,sys.argv)
 
     for i in ["help"]:
-        if not cnf.has_key("Archive-Dedup-Pool::Options::%s" % (i)):
-            cnf["Archive-Dedup-Pool::Options::%s" % (i)] = ""
+        key = "Archive-Dedup-Pool::Options::%s" % i
+        if key not in cnf:
+            cnf[key] = ""
 
     Options = cnf.subtree("Archive-Dedup-Pool::Options")
 

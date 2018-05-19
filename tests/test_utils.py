@@ -26,6 +26,7 @@ from daklib.utils import (arch_compare_sw, is_in_debug_section,
 
 apt_pkg.init()
 
+
 class UtilsTest(DakTestCase):
 
     def test_utils_arch_compare_sw(self):
@@ -39,7 +40,6 @@ class UtilsTest(DakTestCase):
         ]
         for a, b, r in data:
             self.assertEqual(arch_compare_sw(a, b), r)
-
 
     def test_is_in_debug_section(self):
         data = [

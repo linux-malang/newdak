@@ -41,7 +41,8 @@ from daklib import utils
 
 ################################################################################
 
-def usage (exit_code=0):
+
+def usage(exit_code=0):
     print """Usage: dak import-users-from-passwd [OPTION]...
 Sync PostgreSQL's users with system users.
 
@@ -53,7 +54,8 @@ Sync PostgreSQL's users with system users.
 
 ################################################################################
 
-def main ():
+
+def main():
     cnf = Config()
 
     Arguments = [('n', "no-action", "Import-Users-From-Passwd::Options::No-Action"),
@@ -61,8 +63,9 @@ def main ():
                  ('v', "verbose", "Import-Users-From-Passwd::Options::Verbose"),
                  ('h', "help", "Import-Users-From-Passwd::Options::Help")]
     for i in [ "no-action", "quiet", "verbose", "help" ]:
-        if not cnf.has_key("Import-Users-From-Passwd::Options::%s" % (i)):
-            cnf["Import-Users-From-Passwd::Options::%s" % (i)] = ""
+        key = "Import-Users-From-Passwd::Options::%s" % i
+        if key not in cnf:
+            cnf[key] = ""
 
     arguments = apt_pkg.parse_commandline(cnf.Cnf, Arguments, sys.argv)
     Options = cnf.subtree("Import-Users-From-Passwd::Options")
@@ -103,7 +106,7 @@ def main ():
     keys = postgres_unames.keys()
     keys.sort()
     for uname in keys:
-        if not passwd_unames.has_key(uname) and not known_postgres_unames.has_key(uname):
+        if uname not in passwd_unames and uname not in known_postgres_unames:
             print "I: Deleting %s from Postgres, no longer in passwd or list of known Postgres users" % (uname)
             q = session.execute('DROP USER "%s"' % (uname))
 
@@ -111,7 +114,7 @@ def main ():
     keys.sort()
     safe_name = re.compile('^[A-Za-z0-9]+$')
     for uname in keys:
-        if not postgres_unames.has_key(uname):
+        if uname not in postgres_unames:
             if not Options["Quiet"]:
                 print "Creating %s user in Postgres." % (uname)
             if not Options["No-Action"]:

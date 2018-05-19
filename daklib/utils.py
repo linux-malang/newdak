@@ -25,7 +25,6 @@
 import commands
 import codecs
 import datetime
-import email.Header
 import os
 import pwd
 import grp
@@ -76,6 +75,8 @@ key_uid_email_cache = {}  #: Cache for email addresses from gpg key uids
 # Monkeypatch commands.getstatusoutput as it may not return the correct exit
 # code in lenny's Python. This also affects commands.getoutput and
 # commands.getstatus.
+
+
 def dak_getstatusoutput(cmd):
     pipe = daklib.daksubprocess.Popen(cmd, shell=True, universal_newlines=True,
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -96,11 +97,13 @@ commands.getstatusoutput = dak_getstatusoutput
 
 ################################################################################
 
+
 def html_escape(s):
     """ Escape html chars """
     return re_html_escaping.sub(lambda x: html_escaping.get(x.group(0)), s)
 
 ################################################################################
+
 
 def open_file(filename, mode='r'):
     """
@@ -126,6 +129,7 @@ def open_file(filename, mode='r'):
 
 ################################################################################
 
+
 def our_raw_input(prompt=""):
     if prompt:
         while 1:
@@ -144,6 +148,7 @@ def our_raw_input(prompt=""):
 
 ################################################################################
 
+
 def extract_component_from_section(section):
     component = ""
 
@@ -158,9 +163,10 @@ def extract_component_from_section(section):
 
 ################################################################################
 
+
 def parse_deb822(armored_contents, signing_rules=0, keyrings=None, session=None):
     require_signature = True
-    if keyrings == None:
+    if keyrings is None:
         keyrings = []
         require_signature = False
 
@@ -216,7 +222,7 @@ def parse_deb822(armored_contents, signing_rules=0, keyrings=None, session=None)
 
     changes["filecontents"] = armored_contents
 
-    if changes.has_key("source"):
+    if "source" in changes:
         # Strip the source version in brackets from the source field,
         # put it in the "source-version" field instead.
         srcver = re_srchasver.search(changes["source"])
@@ -230,6 +236,7 @@ def parse_deb822(armored_contents, signing_rules=0, keyrings=None, session=None)
     return changes
 
 ################################################################################
+
 
 def parse_changes(filename, signing_rules=0, dsc_file=0, keyrings=None):
     """
@@ -261,7 +268,6 @@ def parse_changes(filename, signing_rules=0, dsc_file=0, keyrings=None):
         raise ChangesUnicodeError("Changes file not proper utf-8")
     changes = parse_deb822(content, signing_rules, keyrings=keyrings)
 
-
     if not dsc_file:
         # Finally ensure that everything needed for .changes is there
         must_keywords = ('Format', 'Date', 'Source', 'Binary', 'Architecture', 'Version',
@@ -269,7 +275,7 @@ def parse_changes(filename, signing_rules=0, dsc_file=0, keyrings=None):
 
         missingfields=[]
         for keyword in must_keywords:
-            if not changes.has_key(keyword.lower()):
+            if keyword.lower() not in changes:
                 missingfields.append(keyword)
 
                 if len(missingfields):
@@ -279,10 +285,12 @@ def parse_changes(filename, signing_rules=0, dsc_file=0, keyrings=None):
 
 ################################################################################
 
+
 def hash_key(hashname):
     return '%ssum' % hashname
 
 ################################################################################
+
 
 def check_dsc_files(dsc_filename, dsc, dsc_files):
     """
@@ -362,11 +370,12 @@ def check_dsc_files(dsc_filename, dsc, dsc_files):
 
 # Dropped support for 1.4 and ``buggy dchanges 3.4'' (?!) compared to di.pl
 
+
 def build_file_list(changes, is_a_dsc=0, field="files", hashname="md5sum"):
     files = {}
 
     # Make sure we have a Files: field to parse...
-    if not changes.has_key(field):
+    if field not in changes:
         raise NoFilesFieldError
 
     # Validate .changes Format: field
@@ -404,7 +413,8 @@ def build_file_list(changes, is_a_dsc=0, field="files", hashname="md5sum"):
 
 ################################################################################
 
-def send_mail (message, filename="", whitelists=None):
+
+def send_mail(message, filename="", whitelists=None):
     """sendmail wrapper, takes _either_ a message string or a file as arguments
 
     @type  whitelists: list of (str or None)
@@ -423,14 +433,14 @@ def send_mail (message, filename="", whitelists=None):
             print >>fh, message,
 
     # Check whether we're supposed to be sending mail
-    if Cnf.has_key("Dinstall::Options::No-Mail") and Cnf["Dinstall::Options::No-Mail"]:
+    if "Dinstall::Options::No-Mail" in Cnf and Cnf["Dinstall::Options::No-Mail"]:
         return
 
     # If we've been passed a string dump it into a temporary file
     if message:
         (fd, filename) = tempfile.mkstemp()
-        os.write (fd, message)
-        os.close (fd)
+        os.write(fd, message)
+        os.close(fd)
 
     if whitelists is None or None in whitelists:
         whitelists = []
@@ -440,23 +450,23 @@ def send_mail (message, filename="", whitelists=None):
         with open_file(filename) as message_in:
             message_raw = modemail.message_from_file(message_in)
 
-        whitelist = [];
+        whitelist = []
         for path in whitelists:
-          with open_file(path, 'r') as whitelist_in:
-            for line in whitelist_in:
-                if not re_whitespace_comment.match(line):
-                    if re_re_mark.match(line):
-                        whitelist.append(re.compile(re_re_mark.sub("", line.strip(), 1)))
-                    else:
-                        whitelist.append(re.compile(re.escape(line.strip())))
+            with open_file(path, 'r') as whitelist_in:
+                for line in whitelist_in:
+                    if not re_whitespace_comment.match(line):
+                        if re_re_mark.match(line):
+                            whitelist.append(re.compile(re_re_mark.sub("", line.strip(), 1)))
+                        else:
+                            whitelist.append(re.compile(re.escape(line.strip())))
 
         # Fields to check.
         fields = ["To", "Bcc", "Cc"]
         for field in fields:
             # Check each field
             value = message_raw.get(field, None)
-            if value != None:
-                match = [];
+            if value is not None:
+                match = []
                 for item in value.split(","):
                     (rfc822_maint, rfc2047_maint, name, email) = fix_maintainer(item.strip())
                     mail_whitelisted = 0
@@ -476,10 +486,10 @@ def send_mail (message, filename="", whitelists=None):
                     message_raw.replace_header(field, ', '.join(match))
 
         # Change message fields in order if we don't have a To header
-        if not message_raw.has_key("To"):
+        if "To" not in message_raw:
             fields.reverse()
             for field in fields:
-                if message_raw.has_key(field):
+                if field in message_raw:
                     message_raw[fields[-1]] = message_raw[field]
                     del message_raw[field]
                     break
@@ -487,12 +497,12 @@ def send_mail (message, filename="", whitelists=None):
                 # Clean up any temporary files
                 # and return, as we removed all recipients.
                 if message:
-                    os.unlink (filename);
-                return;
+                    os.unlink(filename)
+                return
 
-        fd = os.open(filename, os.O_RDWR|os.O_EXCL, 0o700);
-        os.write (fd, message_raw.as_string(True));
-        os.close (fd);
+        fd = os.open(filename, os.O_RDWR|os.O_EXCL, 0o700)
+        os.write(fd, message_raw.as_string(True))
+        os.close(fd)
 
     # Invoke sendmail
     (result, output) = commands.getstatusoutput("%s < %s" % (Cnf["Dinstall::SendmailCommand"], filename))
@@ -501,11 +511,12 @@ def send_mail (message, filename="", whitelists=None):
 
     # Clean up any temporary files
     if message:
-        os.unlink (filename)
+        os.unlink(filename)
 
 ################################################################################
 
-def poolify (source):
+
+def poolify(source):
     if source[:3] == "lib":
         return source[:4] + '/' + source + '/'
     else:
@@ -513,7 +524,8 @@ def poolify (source):
 
 ################################################################################
 
-def move (src, dest, overwrite = 0, perms = 0o664):
+
+def move(src, dest, overwrite=0, perms=0o664):
     if os.path.exists(dest) and os.path.isdir(dest):
         dest_dir = dest
     else:
@@ -536,7 +548,8 @@ def move (src, dest, overwrite = 0, perms = 0o664):
     os.chmod(dest, perms)
     os.unlink(src)
 
-def copy (src, dest, overwrite = 0, perms = 0o664):
+
+def copy(src, dest, overwrite=0, perms=0o664):
     if os.path.exists(dest) and os.path.isdir(dest):
         dest_dir = dest
     else:
@@ -560,7 +573,8 @@ def copy (src, dest, overwrite = 0, perms = 0o664):
 
 ################################################################################
 
-def which_conf_file ():
+
+def which_conf_file():
     if os.getenv('DAK_CONFIG'):
         return os.getenv('DAK_CONFIG')
 
@@ -581,6 +595,7 @@ def which_conf_file ():
 
 ################################################################################
 
+
 def TemplateSubst(subst_map, filename):
     """ Perform a substition of template """
     with open_file(filename) as templatefile:
@@ -591,9 +606,11 @@ def TemplateSubst(subst_map, filename):
 
 ################################################################################
 
+
 def fubar(msg, exit_code=1):
     sys.stderr.write("E: %s\n" % (msg))
     sys.exit(exit_code)
+
 
 def warn(msg):
     sys.stderr.write("W: %s\n" % (msg))
@@ -602,15 +619,19 @@ def warn(msg):
 
 # Returns the user name with a laughable attempt at rfc822 conformancy
 # (read: removing stray periods).
-def whoami ():
+
+
+def whoami():
     return pwd.getpwuid(os.getuid())[4].split(',')[0].replace('.', '')
 
-def getusername ():
+
+def getusername():
     return pwd.getpwuid(os.getuid())[0]
 
 ################################################################################
 
-def size_type (c):
+
+def size_type(c):
     t  = " B"
     if c > 10240:
         c = c / 1024
@@ -622,7 +643,8 @@ def size_type (c):
 
 ################################################################################
 
-def find_next_free (dest, too_many=100):
+
+def find_next_free(dest, too_many=100):
     extra = 0
     orig_dest = dest
     while os.path.lexists(dest) and extra < too_many:
@@ -634,16 +656,18 @@ def find_next_free (dest, too_many=100):
 
 ################################################################################
 
-def result_join (original, sep = '\t'):
+
+def result_join(original, sep='\t'):
     resultlist = []
     for i in xrange(len(original)):
-        if original[i] == None:
+        if original[i] is None:
             resultlist.append("")
         else:
             resultlist.append(original[i])
     return sep.join(resultlist)
 
 ################################################################################
+
 
 def prefix_multi_line_string(str, prefix, include_blank_lines=0):
     out = ""
@@ -658,14 +682,18 @@ def prefix_multi_line_string(str, prefix, include_blank_lines=0):
 
 ################################################################################
 
+
 def join_with_commas_and(list):
-    if len(list) == 0: return "nothing"
-    if len(list) == 1: return list[0]
+    if len(list) == 0:
+        return "nothing"
+    if len(list) == 1:
+        return list[0]
     return ", ".join(list[:-1]) + " and " + list[-1]
 
 ################################################################################
 
-def pp_deps (deps):
+
+def pp_deps(deps):
     pp_deps = []
     for atom in deps:
         (pkg, version, constraint) = atom
@@ -678,10 +706,12 @@ def pp_deps (deps):
 
 ################################################################################
 
+
 def get_conf():
     return Cnf
 
 ################################################################################
+
 
 def parse_args(Options):
     """ Handle -a, -c and -s arguments; returns them as SQL constraints """
@@ -747,7 +777,8 @@ def parse_args(Options):
 
 ################################################################################
 
-def arch_compare_sw (a, b):
+
+def arch_compare_sw(a, b):
     """
     Function for use in sorting lists of architectures.
 
@@ -761,11 +792,12 @@ def arch_compare_sw (a, b):
     elif b == "source":
         return 1
 
-    return cmp (a, b)
+    return cmp(a, b)
 
 ################################################################################
 
-def split_args (s, dwim=True):
+
+def split_args(s, dwim=True):
     """
     Split command line arguments which can be separated by either commas
     or whitespace.  If dwim is set, it will complain about string ending
@@ -783,6 +815,7 @@ def split_args (s, dwim=True):
 
 ################################################################################
 
+
 def gpg_keyring_args(keyrings=None):
     if not keyrings:
         keyrings = get_active_keyring_paths()
@@ -791,10 +824,11 @@ def gpg_keyring_args(keyrings=None):
 
 ################################################################################
 
+
 def gpg_get_key_addresses(fingerprint):
     """retreive email addresses from gpg key uids for a given fingerprint"""
     addresses = key_uid_email_cache.get(fingerprint)
-    if addresses != None:
+    if addresses is not None:
         return addresses
     addresses = list()
     try:
@@ -837,6 +871,7 @@ def gpg_get_key_addresses(fingerprint):
 
 ################################################################################
 
+
 def get_logins_from_ldap(fingerprint='*'):
     """retrieve login from LDAP linked to a given fingerprint"""
 
@@ -853,6 +888,7 @@ def get_logins_from_ldap(fingerprint='*'):
     return login
 
 ################################################################################
+
 
 def get_users_from_ldap():
     """retrieve login and user names from LDAP"""
@@ -878,7 +914,8 @@ def get_users_from_ldap():
 
 ################################################################################
 
-def clean_symlink (src, dest, root):
+
+def clean_symlink(src, dest, root):
     """
     Relativize an absolute symlink from 'src' -> 'dest' relative to 'root'.
     Returns fixed 'src'
@@ -890,6 +927,7 @@ def clean_symlink (src, dest, root):
     return new_src + src
 
 ################################################################################
+
 
 def temp_filename(directory=None, prefix="dak", suffix="", mode=None, group=None):
     """
@@ -923,6 +961,7 @@ def temp_filename(directory=None, prefix="dak", suffix="", mode=None, group=None
     return (tfd, tfname)
 
 ################################################################################
+
 
 def temp_dirname(parent=None, prefix="dak", suffix="", mode=None, group=None):
     """
@@ -958,10 +997,11 @@ def temp_dirname(parent=None, prefix="dak", suffix="", mode=None, group=None):
 
 ################################################################################
 
+
 def is_email_alias(email):
     """ checks if the user part of the email is listed in the alias file """
     global alias_cache
-    if alias_cache == None:
+    if alias_cache is None:
         aliasfn = which_alias_file()
         alias_cache = set()
         if aliasfn:
@@ -971,6 +1011,7 @@ def is_email_alias(email):
     return uid in alias_cache
 
 ################################################################################
+
 
 def get_changes_files(from_dir):
     """
@@ -995,7 +1036,8 @@ Cnf = config.Config().Cnf
 
 ################################################################################
 
-def parse_wnpp_bug_file(file = "/srv/ftp-master.debian.org/scripts/masterfiles/wnpp_rm"):
+
+def parse_wnpp_bug_file(file="/srv/ftp-master.debian.org/scripts/masterfiles/wnpp_rm"):
     """
     Parses the wnpp bug list available at https://qa.debian.org/data/bts/wnpp_rm
     Well, actually it parsed a local copy, but let's document the source
@@ -1030,11 +1072,13 @@ def parse_wnpp_bug_file(file = "/srv/ftp-master.debian.org/scripts/masterfiles/w
 
 ################################################################################
 
+
 def deb_extract_control(fh):
     """extract DEBIAN/control from a binary package"""
     return apt_inst.DebFile(fh).control.extractdata("control")
 
 ################################################################################
+
 
 def mail_addresses_for_upload(maintainer, changed_by, fingerprint):
     """mail addresses to contact for an upload
@@ -1098,6 +1142,7 @@ def mail_addresses_for_upload(maintainer, changed_by, fingerprint):
 
 ################################################################################
 
+
 def call_editor(text="", suffix=".txt"):
     """run editor and return the result as a string
 
@@ -1121,6 +1166,7 @@ def call_editor(text="", suffix=".txt"):
         os.unlink(tmp.name)
 
 ################################################################################
+
 
 def check_reverse_depends(removals, suite, arches=None, session=None, cruft=False, quiet=False, include_arch_all=True):
     dbsuite = get_suite(suite, session)
@@ -1182,8 +1228,9 @@ def check_reverse_depends(removals, suite, arches=None, session=None, cruft=Fals
             if provides is not None:
                 for virtual_pkg in provides.split(","):
                     virtual_pkg = virtual_pkg.strip()
-                    if virtual_pkg == package: continue
-                    if not virtual_packages.has_key(virtual_pkg):
+                    if virtual_pkg == package:
+                        continue
+                    if virtual_pkg not in virtual_packages:
                         virtual_packages[virtual_pkg] = 0
                     if package not in removals:
                         virtual_packages[virtual_pkg] += 1
@@ -1194,7 +1241,8 @@ def check_reverse_depends(removals, suite, arches=None, session=None, cruft=Fals
 
         # Check binary dependencies (Depends)
         for package in deps:
-            if package in removals: continue
+            if package in removals:
+                continue
             try:
                 parsed_dep = apt_pkg.parse_depends(deps[package])
             except ValueError as e:
@@ -1265,7 +1313,8 @@ def check_reverse_depends(removals, suite, arches=None, session=None, cruft=Fals
     query = session.query('source', 'build_dep').from_statement(statement). \
         params(params)
     for source, build_dep in query:
-        if source in removals: continue
+        if source in removals:
+            continue
         parsed_dep = []
         if build_dep is not None:
             # Remove [arch] information since we want to see breakage on all arches
@@ -1315,6 +1364,7 @@ def check_reverse_depends(removals, suite, arches=None, session=None, cruft=Fals
 
 ################################################################################
 
+
 def parse_built_using(control):
     """source packages referenced via Built-Using
 
@@ -1339,6 +1389,7 @@ def parse_built_using(control):
 
 ################################################################################
 
+
 def is_in_debug_section(control):
     """binary package is a debug package
 
@@ -1353,6 +1404,7 @@ def is_in_debug_section(control):
     return section == "debug" and auto_built_package == "debug-symbols"
 
 ################################################################################
+
 
 def find_possibly_compressed_file(filename):
     """

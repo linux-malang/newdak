@@ -25,23 +25,27 @@ import apt_inst
 import apt_pkg
 import errno
 import os
-import re
 
 from daklib.gpg import SignedFile
 from daklib.regexes import *
 import daklib.packagelist
 
+
 class UploadException(Exception):
     pass
+
 
 class InvalidChangesException(UploadException):
     pass
 
+
 class InvalidBinaryException(UploadException):
     pass
 
+
 class InvalidSourceException(UploadException):
     pass
+
 
 class InvalidHashException(UploadException):
     def __init__(self, filename, hash_name, expected, actual):
@@ -49,6 +53,7 @@ class InvalidHashException(UploadException):
         self.hash_name = hash_name
         self.expected = expected
         self.actual = actual
+
     def __str__(self):
         return ("Invalid {0} hash for {1}:\n"
                 "According to the control file the {0} hash should be {2},\n"
@@ -58,21 +63,27 @@ class InvalidHashException(UploadException):
                 "might already be known to the archive software.") \
                 .format(self.hash_name, self.filename, self.expected, self.actual)
 
+
 class InvalidFilenameException(UploadException):
     def __init__(self, filename):
         self.filename = filename
+
     def __str__(self):
         return "Invalid filename '{0}'.".format(self.filename)
+
 
 class FileDoesNotExist(UploadException):
     def __init__(self, filename):
         self.filename = filename
+
     def __str__(self):
         return "Refers to non-existing file '{0}'".format(self.filename)
+
 
 class HashedFile(object):
     """file with checksums
     """
+
     def __init__(self, filename, size, md5sum, sha1sum, sha256sum, section=None, priority=None, input_filename=None):
         self.filename = filename
         """name of the file
@@ -181,7 +192,8 @@ class HashedFile(object):
         if hashes.sha256 != self.sha256sum:
             raise InvalidHashException(self.filename, 'sha256sum', self.sha256sum, hashes.sha256)
 
-def parse_file_list(control, has_priority_and_section, safe_file_regexp = re_file_safe, fields = ('Files', 'Checksums-Sha1', 'Checksums-Sha256')):
+
+def parse_file_list(control, has_priority_and_section, safe_file_regexp=re_file_safe, fields=('Files', 'Checksums-Sha1', 'Checksums-Sha256')):
     """Parse Files and Checksums-* fields
 
     @type  control: dict-like
@@ -250,9 +262,11 @@ def parse_file_list(control, has_priority_and_section, safe_file_regexp = re_fil
 
     return files
 
+
 class Changes(object):
     """Representation of a .changes file
     """
+
     def __init__(self, directory, filename, keyrings, require_signature=True):
         if not re_file_safe.match(filename):
             raise InvalidChangesException('{0}: unsafe filename'.format(filename))
@@ -469,9 +483,11 @@ class Changes(object):
 
         return ret
 
+
 class Binary(object):
     """Representation of a binary package
     """
+
     def __init__(self, directory, hashed_file):
         self.hashed_file = hashed_file
         """file object for the .deb
@@ -531,9 +547,11 @@ class Binary(object):
             return fields[0]
         return "main"
 
+
 class Source(object):
     """Representation of a source package
     """
+
     def __init__(self, directory, hashed_files, keyrings, require_signature=True):
         self.hashed_files = hashed_files
         """list of source files (including the .dsc itself)

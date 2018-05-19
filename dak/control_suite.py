@@ -58,7 +58,8 @@ Logger = None
 
 ################################################################################
 
-def usage (exit_code=0):
+
+def usage(exit_code=0):
     print """Usage: dak control-suite [OPTIONS] [FILE]
 Display or alter the contents of a suite using FILE(s), or stdin.
 
@@ -72,6 +73,7 @@ Display or alter the contents of a suite using FILE(s), or stdin.
     sys.exit(exit_code)
 
 #######################################################################################
+
 
 def get_pkg(package, version, architecture, session):
     if architecture == 'source':
@@ -88,6 +90,7 @@ def get_pkg(package, version, architecture, session):
     return pkg
 
 #######################################################################################
+
 
 def britney_changelog(packages, suite, session):
 
@@ -143,7 +146,8 @@ def britney_changelog(packages, suite, session):
             brit.write("\n")
         brit.write("%s\n" % u[1])
         pu = u[0]
-    if q.rowcount: brit.write("\n\n\n")
+    if q.rowcount:
+        brit.write("\n\n\n")
 
     for p in list(set(old.keys()).difference(current.keys())):
         brit.write("REMOVED: %s %s\n" % (p, old[p]))
@@ -153,7 +157,8 @@ def britney_changelog(packages, suite, session):
 
 #######################################################################################
 
-def version_checks(package, architecture, target_suite, new_version, session, force = False):
+
+def version_checks(package, architecture, target_suite, new_version, session, force=False):
     if architecture == "source":
         suite_version_list = get_suite_version_by_source(package, session)
     else:
@@ -185,6 +190,7 @@ def version_checks(package, architecture, target_suite, new_version, session, fo
 
 #######################################################################################
 
+
 def cmp_package_version(a, b):
     """
     comparison function for tuples of the form (package-name, version, arch, ...)
@@ -201,6 +207,7 @@ def cmp_package_version(a, b):
     return res
 
 #######################################################################################
+
 
 def set_suite(file, suite, transaction, britney=False, force=False):
     session = transaction.session
@@ -270,6 +277,7 @@ def set_suite(file, suite, transaction, britney=False, force=False):
 
 #######################################################################################
 
+
 def process_file(file, suite, action, transaction, britney=False, force=False):
     session = transaction.session
 
@@ -327,7 +335,7 @@ def process_file(file, suite, action, transaction, britney=False, force=False):
                     Logger.log(["added", package, version, architecture, suite.suite_name, pkid])
 
             elif action == "remove":
-                if association_id == None:
+                if association_id is None:
                     utils.warn("'%s_%s_%s' doesn't exist in suite %s." % (package, version, architecture, suite))
                     continue
                 else:
@@ -353,7 +361,7 @@ def process_file(file, suite, action, transaction, britney=False, force=False):
                     transaction.copy_binary(pkg, suite, component)
                     Logger.log(["added", package, version, architecture, suite.suite_name, pkid])
             elif action == "remove":
-                if association_id == None:
+                if association_id is None:
                     utils.warn("'%s_%s_%s' doesn't exist in suite %s." % (package, version, architecture, suite))
                     continue
                 else:
@@ -363,6 +371,7 @@ def process_file(file, suite, action, transaction, britney=False, force=False):
     session.commit()
 
 #######################################################################################
+
 
 def get_list(suite, session):
     suite_id = suite.suite_id
@@ -384,7 +393,8 @@ def get_list(suite, session):
 
 #######################################################################################
 
-def main ():
+
+def main():
     global Logger
 
     cnf = Config()
@@ -398,11 +408,12 @@ def main ():
                  ('s',"set", "Control-Suite::Options::Set", "HasArg")]
 
     for i in ["add", "britney", "help", "list", "remove", "set", "version" ]:
-        if not cnf.has_key("Control-Suite::Options::%s" % (i)):
-            cnf["Control-Suite::Options::%s" % (i)] = ""
+        key = "Control-Suite::Options::%s" % i
+        if key not in cnf:
+            cnf[key] = ""
 
     try:
-        file_list = apt_pkg.parse_commandline(cnf.Cnf, Arguments, sys.argv);
+        file_list = apt_pkg.parse_commandline(cnf.Cnf, Arguments, sys.argv)
     except SystemError as e:
         print "%s\n" % e
         usage(1)
@@ -411,7 +422,7 @@ def main ():
     if Options["Help"]:
         usage()
 
-    force = Options.has_key("Force") and Options["Force"]
+    force = "Force" in Options and Options["Force"]
 
     action = None
 

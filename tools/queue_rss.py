@@ -39,19 +39,21 @@ parser.add_option("-l", "--logdir", dest="logdir",
 parser.add_option("-m", "--max-entries", dest="max_entries", type="int",
         help="Max number of entries to keep (%default)")
 
+
 class Status:
     def __init__(self):
         self.feed_in = PyRSS2Gen.RSS2(
-                       title = "Packages entering NEW",
-                       link = "https://ftp-master.debian.org/new.html",
-                       description = "Debian packages entering the NEW queue" )
+                       title="Packages entering NEW",
+                       link="https://ftp-master.debian.org/new.html",
+                       description="Debian packages entering the NEW queue" )
 
         self.feed_out = PyRSS2Gen.RSS2(
-                       title = "Packages leaving NEW",
-                       link = "https://ftp-master.debian.org/new.html",
-                       description = "Debian packages leaving the NEW queue" )
+                       title="Packages leaving NEW",
+                       link="https://ftp-master.debian.org/new.html",
+                       description="Debian packages leaving the NEW queue" )
 
         self.queue = {}
+
 
 def purge_old_items(feed, max):
     """ Purge RSSItem from feed, no more than max. """
@@ -60,6 +62,7 @@ def purge_old_items(feed, max):
 
     feed.items = feed.items[:max]
     return True
+
 
 def parse_changes(fname):
     """ Parse a .changes file named fname.
@@ -75,6 +78,7 @@ def parse_changes(fname):
         return None
 
     return {os.path.basename(fname): m}
+
 
 def parse_queuedir(dir):
     """ Parse dir for .changes files.
@@ -94,6 +98,7 @@ def parse_queuedir(dir):
             res.update(parsed)
 
     return res
+
 
 def parse_leave_reason(fname):
     """ Parse a dak log file fname for ACCEPT/REJECT reason from process-new.
@@ -117,6 +122,7 @@ def parse_leave_reason(fname):
     f.close()
     return res
 
+
 def add_rss_item(status, msg, direction):
     if direction == "in":
         feed = status.feed_in
@@ -124,12 +130,11 @@ def add_rss_item(status, msg, direction):
         pubdate = msg['Date']
     elif direction == "out":
         feed = status.feed_out
-        if msg.has_key('Leave-Reason'):
+        if 'Leave-Reason' in msg:
             title = "%s %s left NEW (%s)" % (msg['Source'], msg['Version'],
                                              msg['Leave-Reason'][0])
         else:
             title = "%s %s left NEW" % (msg['Source'], msg['Version'])
-
 
         pubdate = datetime.utcnow()
     else:
@@ -143,7 +148,7 @@ def add_rss_item(status, msg, direction):
             (msg['Source'], msg['Version'])
     guid = msg['Checksums-Sha256'][0]['sha256']
 
-    if msg.has_key('Processed-By'):
+    if 'Processed-By' in msg:
         author = msg['Processed-By']
     else:
         changedby = parseaddr(msg['Changed-By'])
@@ -152,13 +157,14 @@ def add_rss_item(status, msg, direction):
     feed.items.insert(0,
         PyRSS2Gen.RSSItem(
             title,
-            pubDate = pubdate,
-            description = description,
-            author = cgi.escape(author),
-            link = link,
-            guid = guid
+            pubDate=pubdate,
+            description=description,
+            author=cgi.escape(author),
+            link=link,
+            guid=guid
         )
     )
+
 
 def update_feeds(curqueue, status, settings):
     # inrss -> append all items in curqueue not in status.queue
@@ -169,20 +175,19 @@ def update_feeds(curqueue, status, settings):
     reason_log = os.path.join(settings.logdir, time.strftime("%Y-%m"))
 
     for (name, parsed) in curqueue.items():
-        if not status.queue.has_key(name):
+        if name not in status.queue:
             # new package
             add_rss_item(status, parsed, "in")
 
     for (name, parsed) in status.queue.items():
-        if not curqueue.has_key(name):
+        if name not in curqueue:
             # removed package, try to find out why
             if leave_reason is None:
                 leave_reason = parse_leave_reason(reason_log)
-            if leave_reason and leave_reason.has_key(name):
+            if leave_reason and name in leave_reason:
                 parsed['Leave-Reason'] = leave_reason[name][0]
                 parsed['Processed-By'] = leave_reason[name][1] + "@debian.org"
             add_rss_item(status, parsed, "out")
-
 
 
 if __name__ == "__main__":

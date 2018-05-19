@@ -52,7 +52,8 @@ Options = None
 
 ################################################################################
 
-def usage (exit_code=0):
+
+def usage(exit_code=0):
     print """Usage: dak generate-index-diffs [OPTIONS] [suites]
 Write out ed-style diffs to Packages/Source lists
 
@@ -67,17 +68,20 @@ Write out ed-style diffs to Packages/Source lists
     """
     sys.exit(exit_code)
 
+
 def tryunlink(file):
     try:
         os.unlink(file)
     except OSError:
         print "warning: removing of %s denied" % (file)
 
+
 def smartstat(file):
     for ext in ["", ".gz", ".bz2", ".xz"]:
         if os.path.isfile(file + ext):
             return (ext, os.stat(file + ext))
     return (None, None)
+
 
 def smartlink(f, t):
     if os.path.isfile(f):
@@ -92,6 +96,7 @@ def smartlink(f, t):
         print "missing: %s" % (f)
         raise IOError(f)
 
+
 def smartopen(file):
     if os.path.isfile(file):
         f = open(file, "r")
@@ -105,16 +110,19 @@ def smartopen(file):
         f = None
     return f
 
+
 def pipe_file(f, t):
     f.seek(0)
     while 1:
         l = f.read(65536)
-        if not l: break
+        if not l:
+            break
         t.write(l)
     t.close()
 
+
 class Updates:
-    def __init__(self, readpath = None, max = 56):
+    def __init__(self, readpath=None, max=56):
         self.can_path = None
         self.history = {}
         self.history_order = []
@@ -130,12 +138,13 @@ class Updates:
                 def read_hashs(ind, hashind, f, self, x=x):
                     while 1:
                         x = f.readline()
-                        if not x or x[0] != " ": break
+                        if not x or x[0] != " ":
+                            break
                         l = x.split()
                         fname = l[2]
                         if fname.endswith('.gz'):
                             fname = fname[:-3]
-                        if not self.history.has_key(fname):
+                        if fname not in self.history:
                             self.history[fname] = [None,None,None]
                             self.history_order.append(fname)
                         if not self.history[fname][ind]:
@@ -241,17 +250,20 @@ class Updates:
             if hs[h][2] and hs[h][2][2]:
                 out.write(" %s %7d %s.gz\n" % (hs[h][2][2], hs[h][2][0], h))
 
+
 def create_temp_file(r):
     f = tempfile.TemporaryFile()
     while 1:
         x = r.read(65536)
-        if not x: break
+        if not x:
+            break
         f.write(x)
     r.close()
     del x,r
     f.flush()
     f.seek(0)
     return f
+
 
 def sizehashes(f):
     size = os.fstat(f.fileno())[6]
@@ -261,8 +273,9 @@ def sizehashes(f):
     sha256sum = apt_pkg.sha256sum(f)
     return (size, sha1sum, sha256sum)
 
-def genchanges(Options, outdir, oldfile, origfile, maxdiffs = 56):
-    if Options.has_key("NoAct"):
+
+def genchanges(Options, outdir, oldfile, origfile, maxdiffs=56):
+    if "NoAct" in Options:
         print "Not acting on: od: %s, oldf: %s, origf: %s, md: %s" % (outdir, oldfile, origfile, maxdiffs)
         return
 
@@ -304,9 +317,11 @@ def genchanges(Options, outdir, oldfile, origfile, maxdiffs = 56):
     #    if upd.filesizesha1 != oldsizesha1:
     #        print "info: old file " + oldfile + " changed! %s %s => %s %s" % (upd.filesizesha1 + oldsizesha1)
 
-    if Options.has_key("CanonicalPath"): upd.can_path=Options["CanonicalPath"]
+    if "CanonicalPath" in Options:
+        upd.can_path=Options["CanonicalPath"]
 
-    if os.path.exists(newfile): os.unlink(newfile)
+    if os.path.exists(newfile):
+        os.unlink(newfile)
     smartlink(origfile, newfile)
     newf = open(newfile, "r")
     newsizehashes = sizehashes(newf)
@@ -364,14 +379,15 @@ def main():
                 ]
     suites = apt_pkg.parse_commandline(Cnf,Arguments,sys.argv)
     Options = Cnf.subtree("Generate-Index-Diffs::Options")
-    if Options.has_key("Help"): usage()
+    if "Help" in Options:
+        usage()
 
     maxdiffs = Options.get("MaxDiffs::Default", "56")
     maxpackages = Options.get("MaxDiffs::Packages", maxdiffs)
     maxcontents = Options.get("MaxDiffs::Contents", maxdiffs)
     maxsources = Options.get("MaxDiffs::Sources", maxdiffs)
 
-    if not Options.has_key("PatchName"):
+    if "PatchName" not in Options:
         format = "%Y-%m-%d-%H%M.%S"
         Options["PatchName"] = time.strftime( format )
 
@@ -442,12 +458,14 @@ def main():
 
                 # Process Contents
                 file = "%s/%s/Contents-%s" % (tree, component, architecture)
-                if Options.has_key("Verbose"): print(file)
+                if "Verbose" in Options:
+                    print(file)
                 storename = "%s/%s_%s_contents_%s" % (Options["TempDir"], suite, component, architecture)
                 genchanges(Options, file + ".diff", storename, file, maxcontents)
 
                 file = "%s/%s/%s/%s" % (tree, component, longarch, packages)
-                if Options.has_key("Verbose"): print(file)
+                if "Verbose" in Options:
+                    print(file)
                 storename = "%s/%s_%s_%s" % (Options["TempDir"], suite, component, architecture)
                 genchanges(Options, file + ".diff", storename, file, maxsuite)
 

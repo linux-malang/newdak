@@ -17,7 +17,7 @@
 """module to process policy queue uploads"""
 
 from .config import Config
-from .dbconn import BinaryMetadata, Component, MetadataKey, Override, OverrideType, Suite, get_mapped_component, get_mapped_component_name
+from .dbconn import Component, Override, OverrideType, Suite, get_mapped_component, get_mapped_component_name
 from .fstransactions import FilesystemTransaction
 from .regexes import re_file_changes, re_file_safe
 from .packagelist import PackageList
@@ -26,7 +26,7 @@ import daklib.utils as utils
 import errno
 import os
 import shutil
-import tempfile
+
 
 class UploadCopy(object):
     """export a policy queue upload
@@ -40,6 +40,7 @@ class UploadCopy(object):
     given by the C{directory} attribute.  The copy will be removed on leaving
     the with-block.
     """
+
     def __init__(self, upload, group=None):
         """initializer
 
@@ -118,12 +119,14 @@ class UploadCopy(object):
             self.directory = None
         return None
 
+
 class PolicyQueueUploadHandler(object):
     """process uploads to policy queues
 
     This class allows to accept or reject uploads and to get a list of missing
     overrides (for NEW processing).
     """
+
     def __init__(self, upload, session):
         """initializer
 
@@ -261,12 +264,12 @@ class PolicyQueueUploadHandler(object):
                     component = hint['component']
                 else:
                     missing.append(dict(
-                            package = name,
-                            priority = priority,
-                            section = section,
-                            component = component,
-                            type = type,
-                            included = included
+                            package=name,
+                            priority=priority,
+                            section=section,
+                            component=component,
+                            type=type,
+                            included=included
                             ))
             components.add(component)
 
@@ -302,12 +305,12 @@ class PolicyQueueUploadHandler(object):
                     if source_component != 'main':
                         section = "{0}/{1}".format(source_component, section)
                     missing.append(dict(
-                            package = source.source,
-                            priority = 'extra',
-                            section = section,
-                            component = source_component,
-                            type = 'dsc',
-                            included = True,
+                            package=source.source,
+                            priority='extra',
+                            section=section,
+                            component=source_component,
+                            type='dsc',
+                            included=True,
                             ))
 
         return missing

@@ -6,6 +6,7 @@ import unittest
 
 from daklib.lintian import parse_lintian_output, generate_reject_messages
 
+
 class ParseLintianTestCase(DakTestCase):
     def assertParse(self, output, expected):
         self.assertEqual(
@@ -56,6 +57,7 @@ class ParseLintianTestCase(DakTestCase):
                 'description': 'path/to/file',
             }]
         )
+
 
 class GenerateRejectMessages(DakTestCase):
     def assertNumReject(self, input, defs, num):
@@ -128,7 +130,7 @@ class GenerateRejectMessages(DakTestCase):
                 'package': 'pkgname',
                 'tag': 'non-fatal-tag',
                 'description': ''},
-            ], {'fatal': [], 'nonfatal': ['non-fatal-tag']},
+                ], {'fatal': [], 'nonfatal': ['non-fatal-tag']},
             0,
         )
 

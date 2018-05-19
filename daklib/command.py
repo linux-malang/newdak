@@ -21,7 +21,6 @@
 
 import apt_pkg
 import os
-import re
 import tempfile
 
 from daklib.config import Config
@@ -31,8 +30,10 @@ from daklib.regexes import re_field_package
 from daklib.textutils import fix_maintainer
 from daklib.utils import gpg_get_key_addresses, send_mail, TemplateSubst
 
+
 class CommandError(Exception):
     pass
+
 
 class CommandFile(object):
     def __init__(self, filename, data, log=None):

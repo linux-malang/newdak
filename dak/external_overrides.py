@@ -29,6 +29,7 @@ from daklib import utils, daklog
 import apt_pkg
 import sys
 
+
 def usage():
     print """Usage: dak external-overrides COMMAND
 Modify external overrides.
@@ -51,10 +52,12 @@ should be given as lines of the form 'PACKAGE KEY VALUE'.
 
 #############################################################################
 
+
 class ExternalOverrideReader(object):
     """
     Parses an external override file
     """
+
     def __init__(self, fh):
         self.fh = fh
         self.package = None
@@ -76,7 +79,8 @@ class ExternalOverrideReader(object):
         override file
         """
         for line in self.fh:
-            if not line: continue
+            if not line:
+                continue
             if line[0] in (" ", "\t"):
                 # Continuation line
                 self.value.append(line.rstrip())
@@ -93,7 +97,8 @@ class ExternalOverrideReader(object):
 
 #############################################################################
 
-def external_overrides_copy(from_suite_name, to_suite_name, force = False):
+
+def external_overrides_copy(from_suite_name, to_suite_name, force=False):
     session = DBConn().session()
 
     from_suite = get_suite(from_suite_name, session)
@@ -121,7 +126,8 @@ def external_overrides_copy(from_suite_name, to_suite_name, force = False):
 
     session.commit()
 
-def external_overrides_import(suite_name, component_name, key, file, force = False):
+
+def external_overrides_import(suite_name, component_name, key, file, force=False):
     session = DBConn().session()
 
     suite = get_suite(suite_name, session)
@@ -147,6 +153,7 @@ def external_overrides_import(suite_name, component_name, key, file, force = Fal
 
 #############################################################################
 
+
 def main():
     cnf = Config()
 
@@ -159,11 +166,11 @@ def main():
     except KeyError:
         Options = {}
 
-    if Options.has_key("Help"):
+    if "Help" in Options:
         usage()
 
     force = False
-    if Options.has_key("Force") and Options["Force"]:
+    if "Force" in Options and Options["Force"]:
         force = True
 
     logger = daklog.Logger('external-overrides')

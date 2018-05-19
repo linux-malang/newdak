@@ -21,7 +21,6 @@
 
 import apt_pkg
 import datetime
-import errno
 import fcntl
 import os
 import select
@@ -33,8 +32,10 @@ try:
 except:
     _MAXFD = 256
 
+
 class GpgException(Exception):
     pass
+
 
 class _Pipe(object):
     """context manager for pipes
@@ -42,23 +43,28 @@ class _Pipe(object):
     Note: When the pipe is closed by other means than the close_r and close_w
     methods, you have to set self.r (self.w) to None.
     """
+
     def __enter__(self):
         (self.r, self.w) = os.pipe()
         return self
+
     def __exit__(self, type, value, traceback):
         self.close_w()
         self.close_r()
         return False
+
     def close_r(self):
         """close reading side of the pipe"""
         if self.r:
             os.close(self.r)
             self.r = None
+
     def close_w(self):
         """close writing part of the pipe"""
         if self.w:
             os.close(self.w)
             self.w = None
+
 
 class SignedFile(object):
     """handle files signed with PGP
@@ -70,6 +76,7 @@ class SignedFile(object):
       fingerprint         - fingerprint of the key used for signing
       primary_fingerprint - fingerprint of the primary key associated to the key used for signing
     """
+
     def __init__(self, data, keyrings, require_signature=True, gpg="/usr/bin/gpg"):
         """
         @param data: string containing the message
@@ -106,10 +113,10 @@ class SignedFile(object):
         return self.signature_ids[0]
 
     def _verify(self, data, require_signature):
-        with _Pipe() as stdin:
-         with _Pipe() as contents:
-          with _Pipe() as status:
-           with _Pipe() as stderr:
+        with _Pipe() as stdin, \
+                _Pipe() as contents, \
+                _Pipe() as status, \
+                _Pipe() as stderr:
             pid = os.fork()
             if pid == 0:
                 self._exec_gpg(stdin.r, contents.w, stderr.w, status.w)
@@ -280,6 +287,7 @@ class SignedFile(object):
 
     def contents_sha1(self):
         return apt_pkg.sha1sum(self.contents)
+
 
 def sign(infile, outfile, keyids=[], inline=False, pubring=None, secring=None, homedir=None, passphrase_file=None):
     args = [

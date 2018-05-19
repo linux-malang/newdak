@@ -65,6 +65,7 @@ old_ACTION = '^(\d{14})\|(?:lisa|process-new)\|(Accepting changes|rejected)\|'
 
 ################################################################################
 
+
 def usage(exit_code=0):
     print """Usage: dak stats MODE
 Print various stats.
@@ -82,6 +83,7 @@ The following MODEs are available:
 
 ################################################################################
 
+
 def per_arch_space_use():
     session = DBConn().session()
     q = session.execute("""
@@ -97,6 +99,7 @@ SELECT a.arch_string as Architecture, sum(f.size) AS sum
 
 ################################################################################
 
+
 def daily_install_stats():
     stats = {}
     f = utils.open_file("2001-11")
@@ -109,7 +112,7 @@ def daily_install_stats():
         if action != "installing changes" and action != "installed":
             continue
         date = split[0][:8]
-        if not stats.has_key(date):
+        if date not in stats:
             stats[date] = {}
             stats[date]["packages"] = 0
             stats[date]["size"] = 0.0
@@ -127,6 +130,7 @@ def daily_install_stats():
 
 ################################################################################
 
+
 def longest(list):
     longest = 0
     for i in list:
@@ -135,11 +139,13 @@ def longest(list):
             longest = l
     return longest
 
+
 def output_format(suite):
     output_suite = []
     for word in suite.split("-"):
         output_suite.append(word[0])
     return "-".join(output_suite)
+
 
 def number_of_packages():
     arches = {}
@@ -203,7 +209,7 @@ def number_of_packages():
         arch_id = arch_ids[arch]
         output = output + arch.center(longest_arch)+" |"
         for suite_id in suite_id_list:
-            if suite_arches[suite_id].has_key(arch):
+            if arch in suite_arches[suite_id]:
                 count = "%d" % d[suite_id][arch_id]
             else:
                 count = "-"
@@ -212,6 +218,7 @@ def number_of_packages():
     print output
 
 ################################################################################
+
 
 def parse_new_uploads(data):
     global stats
@@ -383,15 +390,17 @@ def new_stats(logdir, yaml):
 
 ################################################################################
 
-def main ():
+
+def main():
     global Cnf
     global users
 
     Cnf = utils.get_conf()
     Arguments = [('h',"help","Stats::Options::Help")]
     for i in [ "help" ]:
-        if not Cnf.has_key("Stats::Options::%s" % (i)):
-            Cnf["Stats::Options::%s" % (i)] = ""
+        key = "Stats::Options::%s" % i
+        if key not in Cnf:
+            Cnf[key] = ""
 
     args = apt_pkg.parse_commandline(Cnf, Arguments, sys.argv)
 
@@ -407,8 +416,8 @@ def main ():
             utils.warn("dak stats accepts only one MODE argument")
             usage(1)
     elif args[0].lower() == "new":
-            utils.warn("new MODE requires an output file")
-            usage(1)
+        utils.warn("new MODE requires an output file")
+        usage(1)
     mode = args[0].lower()
 
     if mode == "arch-space":

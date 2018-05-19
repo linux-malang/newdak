@@ -109,6 +109,7 @@ __all__ = ['IntegrityError', 'SQLAlchemyError', 'DebVersion']
 
 ################################################################################
 
+
 def session_wrapper(fn):
     """
     Wrapper around common ".., session=None):" handling. If the wrapped
@@ -159,6 +160,7 @@ def session_wrapper(fn):
 __all__.append('session_wrapper')
 
 ################################################################################
+
 
 class ORMObject(object):
     """
@@ -241,7 +243,7 @@ class ORMObject(object):
 
     @classmethod
     @session_wrapper
-    def get(cls, primary_key,  session = None):
+    def get(cls, primary_key,  session=None):
         '''
         This is a support function that allows getting an object by its primary
         key.
@@ -254,7 +256,7 @@ class ORMObject(object):
         '''
         return session.query(cls).get(primary_key)
 
-    def session(self, replace = False):
+    def session(self, replace=False):
         '''
         Returns the current session that is associated with the object. May
         return None is object is in detached state.
@@ -262,7 +264,7 @@ class ORMObject(object):
 
         return object_session(self)
 
-    def clone(self, session = None):
+    def clone(self, session=None):
         """
         Clones the current object in a new session and returns the new clone. A
         fresh session is created if the optional session parameter is not
@@ -302,11 +304,13 @@ __all__.append('ORMObject')
 
 ################################################################################
 
+
 class ACL(ORMObject):
     def __repr__(self):
         return "<ACL {0}>".format(self.name)
 
 __all__.append('ACL')
+
 
 class ACLPerSource(ORMObject):
     def __repr__(self):
@@ -316,8 +320,9 @@ __all__.append('ACLPerSource')
 
 ################################################################################
 
+
 class Architecture(ORMObject):
-    def __init__(self, arch_string = None, description = None):
+    def __init__(self, arch_string=None, description=None):
         self.arch_string = arch_string
         self.description = description
 
@@ -337,6 +342,7 @@ class Architecture(ORMObject):
         return ['arch_string', 'arch_id', 'suites_count']
 
 __all__.append('Architecture')
+
 
 @session_wrapper
 def get_architecture(architecture, session=None):
@@ -365,6 +371,7 @@ __all__.append('get_architecture')
 
 ################################################################################
 
+
 class Archive(object):
     def __init__(self, *args, **kwargs):
         pass
@@ -373,6 +380,7 @@ class Archive(object):
         return '<Archive %s>' % self.archive_name
 
 __all__.append('Archive')
+
 
 @session_wrapper
 def get_archive(archive, session=None):
@@ -403,11 +411,13 @@ __all__.append('get_archive')
 
 ################################################################################
 
+
 class ArchiveFile(object):
     def __init__(self, archive=None, component=None, file=None):
         self.archive = archive
         self.component = component
         self.file = file
+
     @property
     def path(self):
         return os.path.join(self.archive.path, 'pool', self.component.component_name, self.file.filename)
@@ -416,8 +426,9 @@ __all__.append('ArchiveFile')
 
 ################################################################################
 
+
 class BinContents(ORMObject):
-    def __init__(self, file = None, binary = None):
+    def __init__(self, file=None, binary=None):
         self.file = file
         self.binary = binary
 
@@ -428,10 +439,11 @@ __all__.append('BinContents')
 
 ################################################################################
 
+
 class DBBinary(ORMObject):
-    def __init__(self, package = None, source = None, version = None, \
-        maintainer = None, architecture = None, poolfile = None, \
-        binarytype = 'deb', fingerprint=None):
+    def __init__(self, package=None, source=None, version=None, \
+        maintainer=None, architecture=None, poolfile=None, \
+        binarytype='deb', fingerprint=None):
         self.package = package
         self.source = source
         self.version = version
@@ -462,7 +474,7 @@ class DBBinary(ORMObject):
         fullpath = self.poolfile.fullpath
         dpkg_cmd = ('dpkg-deb', '--fsys-tarfile', fullpath)
         dpkg = daklib.daksubprocess.Popen(dpkg_cmd, stdout=subprocess.PIPE)
-        tar = TarFile.open(fileobj = dpkg.stdout, mode = 'r|')
+        tar = TarFile.open(fileobj=dpkg.stdout, mode='r|')
         for member in tar.getmembers():
             if not member.isdir():
                 name = normpath(member.name)
@@ -507,6 +519,7 @@ class DBBinary(ORMObject):
 
 __all__.append('DBBinary')
 
+
 @session_wrapper
 def get_suites_binary_in(package, session=None):
     """
@@ -522,6 +535,7 @@ def get_suites_binary_in(package, session=None):
     return session.query(Suite).filter(Suite.binaries.any(DBBinary.package == package)).all()
 
 __all__.append('get_suites_binary_in')
+
 
 @session_wrapper
 def get_component_by_package_suite(package, suite_list, arch_list=[], session=None):
@@ -543,7 +557,7 @@ def get_component_by_package_suite(package, suite_list, arch_list=[], session=No
     @return: name of component or None
     '''
 
-    q = session.query(DBBinary).filter_by(package = package). \
+    q = session.query(DBBinary).filter_by(package=package). \
         join(DBBinary.suites).filter(Suite.suite_name.in_(suite_list))
     if len(arch_list) > 0:
         q = q.join(DBBinary.architecture). \
@@ -558,6 +572,7 @@ __all__.append('get_component_by_package_suite')
 
 ################################################################################
 
+
 class BuildQueue(object):
     def __init__(self, *args, **kwargs):
         pass
@@ -569,8 +584,9 @@ __all__.append('BuildQueue')
 
 ################################################################################
 
+
 class Component(ORMObject):
-    def __init__(self, component_name = None):
+    def __init__(self, component_name=None):
         self.component_name = component_name
 
     def __eq__(self, val):
@@ -590,6 +606,7 @@ class Component(ORMObject):
             'meets_dfsg', 'overrides_count']
 
 __all__.append('Component')
+
 
 @session_wrapper
 def get_component(component, session=None):
@@ -614,6 +631,7 @@ def get_component(component, session=None):
 
 __all__.append('get_component')
 
+
 def get_mapped_component_name(component_name):
     cnf = Config()
     for m in cnf.value_list("ComponentMappings"):
@@ -623,6 +641,7 @@ def get_mapped_component_name(component_name):
     return component_name
 
 __all__.append('get_mapped_component_name')
+
 
 @session_wrapper
 def get_mapped_component(component_name, session=None):
@@ -648,6 +667,7 @@ def get_mapped_component(component_name, session=None):
 
 __all__.append('get_mapped_component')
 
+
 @session_wrapper
 def get_component_names(session=None):
     """
@@ -663,6 +683,7 @@ __all__.append('get_component_names')
 
 ################################################################################
 
+
 class DBConfig(object):
     def __init__(self, *args, **kwargs):
         pass
@@ -674,6 +695,7 @@ __all__.append('DBConfig')
 
 ################################################################################
 
+
 class DSCFile(object):
     def __init__(self, *args, **kwargs):
         pass
@@ -682,6 +704,7 @@ class DSCFile(object):
         return '<DSCFile %s>' % self.dscfile_id
 
 __all__.append('DSCFile')
+
 
 @session_wrapper
 def get_dscfiles(dscfile_id=None, source_id=None, poolfile_id=None, session=None):
@@ -718,6 +741,7 @@ __all__.append('get_dscfiles')
 
 ################################################################################
 
+
 class ExternalOverride(ORMObject):
     def __init__(self, *args, **kwargs):
         pass
@@ -729,9 +753,10 @@ __all__.append('ExternalOverride')
 
 ################################################################################
 
+
 class PoolFile(ORMObject):
-    def __init__(self, filename = None, filesize = -1, \
-        md5sum = None):
+    def __init__(self, filename=None, filesize=-1, \
+        md5sum=None):
         self.filename = filename
         self.filesize = filesize
         self.md5sum = md5sum
@@ -755,7 +780,7 @@ class PoolFile(ORMObject):
     def basename(self):
         return os.path.basename(self.filename)
 
-    def is_valid(self, filesize = -1, md5sum = None):
+    def is_valid(self, filesize=-1, md5sum=None):
         return self.filesize == long(filesize) and self.md5sum == md5sum
 
     def properties(self):
@@ -784,8 +809,9 @@ __all__.append('PoolFile')
 
 ################################################################################
 
+
 class Fingerprint(ORMObject):
-    def __init__(self, fingerprint = None):
+    def __init__(self, fingerprint=None):
         self.fingerprint = fingerprint
 
     def properties(self):
@@ -793,6 +819,7 @@ class Fingerprint(ORMObject):
             'binary_reject']
 
 __all__.append('Fingerprint')
+
 
 @session_wrapper
 def get_fingerprint(fpr, session=None):
@@ -820,6 +847,7 @@ def get_fingerprint(fpr, session=None):
     return ret
 
 __all__.append('get_fingerprint')
+
 
 @session_wrapper
 def get_or_set_fingerprint(fpr, session=None):
@@ -859,6 +887,8 @@ __all__.append('get_or_set_fingerprint')
 ################################################################################
 
 # Helper routine for Keyring class
+
+
 def get_ldap_name(entry):
     name = []
     for k in ["cn", "mn", "sn"]:
@@ -868,6 +898,7 @@ def get_ldap_name(entry):
     return " ".join(name)
 
 ################################################################################
+
 
 class Keyring(object):
     keys = {}
@@ -968,7 +999,7 @@ class Keyring(object):
                     continue
                 self.keys[key]["uid"] = uid
 
-                if keyid != None:
+                if keyid is not None:
                     continue
                 keyid = get_or_set_uid(uid, session).uid_id
                 byuid[keyid] = (uid, name)
@@ -1001,6 +1032,7 @@ class Keyring(object):
 
 __all__.append('Keyring')
 
+
 @session_wrapper
 def get_keyring(keyring, session=None):
     """
@@ -1023,17 +1055,19 @@ def get_keyring(keyring, session=None):
 
 __all__.append('get_keyring')
 
+
 @session_wrapper
 def get_active_keyring_paths(session=None):
     """
     @rtype: list
     @return: list of active keyring paths
     """
-    return [ x.keyring_name for x in session.query(Keyring).filter(Keyring.active == True).order_by(desc(Keyring.priority)).all() ]
+    return [ x.keyring_name for x in session.query(Keyring).filter(Keyring.active == True).order_by(desc(Keyring.priority)).all() ]  # noqa:E712
 
 __all__.append('get_active_keyring_paths')
 
 ################################################################################
+
 
 class DBChange(object):
     def __init__(self, *args, **kwargs):
@@ -1043,6 +1077,7 @@ class DBChange(object):
         return '<DBChange %s>' % self.changesname
 
 __all__.append('DBChange')
+
 
 @session_wrapper
 def get_dbchange(filename, session=None):
@@ -1071,8 +1106,9 @@ __all__.append('get_dbchange')
 
 ################################################################################
 
+
 class Maintainer(ORMObject):
-    def __init__(self, name = None):
+    def __init__(self, name=None):
         self.name = name
 
     def properties(self):
@@ -1085,6 +1121,7 @@ class Maintainer(ORMObject):
         return fix_maintainer(self.name.strip())
 
 __all__.append('Maintainer')
+
 
 @session_wrapper
 def get_or_set_maintainer(name, session=None):
@@ -1120,6 +1157,7 @@ def get_or_set_maintainer(name, session=None):
 
 __all__.append('get_or_set_maintainer')
 
+
 @session_wrapper
 def get_maintainer(maintainer_id, session=None):
     """
@@ -1139,6 +1177,7 @@ __all__.append('get_maintainer')
 
 ################################################################################
 
+
 class NewComment(object):
     def __init__(self, *args, **kwargs):
         pass
@@ -1147,6 +1186,7 @@ class NewComment(object):
         return '''<NewComment for '%s %s' (%s)>''' % (self.package, self.version, self.comment_id)
 
 __all__.append('NewComment')
+
 
 @session_wrapper
 def has_new_comment(policy_queue, package, version, session=None):
@@ -1175,6 +1215,7 @@ def has_new_comment(policy_queue, package, version, session=None):
 
 __all__.append('has_new_comment')
 
+
 @session_wrapper
 def get_new_comments(policy_queue, package=None, version=None, comment_id=None, session=None):
     """
@@ -1199,9 +1240,12 @@ def get_new_comments(policy_queue, package=None, version=None, comment_id=None, 
     """
 
     q = session.query(NewComment).filter_by(policy_queue=policy_queue)
-    if package is not None: q = q.filter_by(package=package)
-    if version is not None: q = q.filter_by(version=version)
-    if comment_id is not None: q = q.filter_by(comment_id=comment_id)
+    if package is not None:
+        q = q.filter_by(package=package)
+    if version is not None:
+        q = q.filter_by(version=version)
+    if comment_id is not None:
+        q = q.filter_by(comment_id=comment_id)
 
     return q.all()
 
@@ -1209,9 +1253,10 @@ __all__.append('get_new_comments')
 
 ################################################################################
 
+
 class Override(ORMObject):
-    def __init__(self, package = None, suite = None, component = None, overridetype = None, \
-        section = None, priority = None):
+    def __init__(self, package=None, suite=None, component=None, overridetype=None, \
+        section=None, priority=None):
         self.package = package
         self.suite = suite
         self.component = component
@@ -1224,6 +1269,7 @@ class Override(ORMObject):
             'priority']
 
 __all__.append('Override')
+
 
 @session_wrapper
 def get_override(package, suite=None, component=None, overridetype=None, session=None):
@@ -1257,15 +1303,18 @@ def get_override(package, suite=None, component=None, overridetype=None, session
     q = q.filter_by(package=package)
 
     if suite is not None:
-        if not isinstance(suite, list): suite = [suite]
+        if not isinstance(suite, list):
+            suite = [suite]
         q = q.join(Suite).filter(Suite.suite_name.in_(suite))
 
     if component is not None:
-        if not isinstance(component, list): component = [component]
+        if not isinstance(component, list):
+            component = [component]
         q = q.join(Component).filter(Component.component_name.in_(component))
 
     if overridetype is not None:
-        if not isinstance(overridetype, list): overridetype = [overridetype]
+        if not isinstance(overridetype, list):
+            overridetype = [overridetype]
         q = q.join(OverrideType).filter(OverrideType.overridetype.in_(overridetype))
 
     return q.all()
@@ -1276,13 +1325,14 @@ __all__.append('get_override')
 ################################################################################
 
 class OverrideType(ORMObject):
-    def __init__(self, overridetype = None):
+    def __init__(self, overridetype=None):
         self.overridetype = overridetype
 
     def properties(self):
         return ['overridetype', 'overridetype_id', 'overrides_count']
 
 __all__.append('OverrideType')
+
 
 @session_wrapper
 def get_override_type(override_type, session=None):
@@ -1311,6 +1361,7 @@ __all__.append('get_override_type')
 
 ################################################################################
 
+
 class PolicyQueue(object):
     def __init__(self, *args, **kwargs):
         pass
@@ -1319,6 +1370,7 @@ class PolicyQueue(object):
         return '<PolicyQueue %s>' % self.queue_name
 
 __all__.append('PolicyQueue')
+
 
 @session_wrapper
 def get_policy_queue(queuename, session=None):
@@ -1347,6 +1399,7 @@ __all__.append('get_policy_queue')
 
 ################################################################################
 
+
 class PolicyQueueUpload(object):
     def __cmp__(self, other):
         ret = cmp(self.changes.source, other.changes.source)
@@ -1365,6 +1418,7 @@ __all__.append('PolicyQueueUpload')
 
 ################################################################################
 
+
 class PolicyQueueByhandFile(object):
     pass
 
@@ -1372,8 +1426,9 @@ __all__.append('PolicyQueueByhandFile')
 
 ################################################################################
 
+
 class Priority(ORMObject):
-    def __init__(self, priority = None, level = None):
+    def __init__(self, priority=None, level=None):
         self.priority = priority
         self.level = level
 
@@ -1393,6 +1448,7 @@ class Priority(ORMObject):
         return NotImplemented
 
 __all__.append('Priority')
+
 
 @session_wrapper
 def get_priority(priority, session=None):
@@ -1419,6 +1475,7 @@ def get_priority(priority, session=None):
 
 __all__.append('get_priority')
 
+
 @session_wrapper
 def get_priorities(session=None):
     """
@@ -1443,8 +1500,9 @@ __all__.append('get_priorities')
 
 ################################################################################
 
+
 class Section(ORMObject):
-    def __init__(self, section = None):
+    def __init__(self, section=None):
         self.section = section
 
     def properties(self):
@@ -1463,6 +1521,7 @@ class Section(ORMObject):
         return NotImplemented
 
 __all__.append('Section')
+
 
 @session_wrapper
 def get_section(section, session=None):
@@ -1489,6 +1548,7 @@ def get_section(section, session=None):
 
 __all__.append('get_section')
 
+
 @session_wrapper
 def get_sections(session=None):
     """
@@ -1513,6 +1573,7 @@ __all__.append('get_sections')
 
 ################################################################################
 
+
 class SignatureHistory(ORMObject):
     @classmethod
     def from_signed_file(cls, signed_file):
@@ -1536,8 +1597,9 @@ __all__.append('SignatureHistory')
 
 ################################################################################
 
+
 class SrcContents(ORMObject):
-    def __init__(self, file = None, source = None):
+    def __init__(self, file=None, source=None):
         self.file = file
         self.source = source
 
@@ -1551,6 +1613,8 @@ __all__.append('SrcContents')
 from debian.debfile import Deb822
 
 # Temporary Deb822 subclass to fix bugs with : handling; see #597249
+
+
 class Dak822(Deb822):
     def _internal_parser(self, sequence, fields=None):
         # The key is non-whitespace, non-colon characters before any colon.
@@ -1603,8 +1667,8 @@ class Dak822(Deb822):
 
 
 class DBSource(ORMObject):
-    def __init__(self, source = None, version = None, maintainer = None, \
-        changedby = None, poolfile = None, install_date = None, fingerprint = None):
+    def __init__(self, source=None, version=None, maintainer=None, \
+        changedby=None, poolfile=None, install_date=None, fingerprint=None):
         self.source = source
         self.version = version
         self.maintainer = maintainer
@@ -1662,6 +1726,7 @@ class DBSource(ORMObject):
 
 __all__.append('DBSource')
 
+
 @session_wrapper
 def get_suites_source_in(source, session=None):
     """
@@ -1680,6 +1745,8 @@ __all__.append('get_suites_source_in')
 
 # FIXME: This function fails badly if it finds more than 1 source package and
 # its implementation is trivial enough to be inlined.
+
+
 @session_wrapper
 def get_source_in_suite(source, suite_name, session=None):
     """
@@ -1707,6 +1774,7 @@ def get_source_in_suite(source, suite_name, session=None):
         return None
 
 __all__.append('get_source_in_suite')
+
 
 @session_wrapper
 def import_metadata_into_db(obj, session=None):
@@ -1737,6 +1805,7 @@ __all__.append('import_metadata_into_db')
 
 ################################################################################
 
+
 class SrcFormat(object):
     def __init__(self, *args, **kwargs):
         pass
@@ -1766,8 +1835,10 @@ SUITE_FIELDS = [ ('SuiteName', 'suite_name'),
 
 # Why the heck don't we have any UNIQUE constraints in table suite?
 # TODO: Add UNIQUE constraints for appropriate columns.
+
+
 class Suite(ORMObject):
-    def __init__(self, suite_name = None, version = None):
+    def __init__(self, suite_name=None, version=None):
         self.suite_name = suite_name
         self.version = version
 
@@ -1834,7 +1905,7 @@ class Suite(ORMObject):
         """
 
         session = object_session(self)
-        return session.query(DBSource).filter_by(source = source). \
+        return session.query(DBSource).filter_by(source=source). \
             with_parent(self)
 
     def get_overridesuite(self):
@@ -1857,6 +1928,7 @@ class Suite(ORMObject):
         return self.suite_name
 
 __all__.append('Suite')
+
 
 @session_wrapper
 def get_suite(suite, session=None):
@@ -1899,6 +1971,7 @@ __all__.append('get_suite')
 
 ################################################################################
 
+
 @session_wrapper
 def get_suite_architectures(suite, skipsrc=False, skipall=False, session=None):
     """
@@ -1933,8 +2006,9 @@ __all__.append('get_suite_architectures')
 
 ################################################################################
 
+
 class Uid(ORMObject):
-    def __init__(self, uid = None, name = None):
+    def __init__(self, uid=None, name=None):
         self.uid = uid
         self.name = name
 
@@ -1954,6 +2028,7 @@ class Uid(ORMObject):
         return ['uid', 'name', 'fingerprint']
 
 __all__.append('Uid')
+
 
 @session_wrapper
 def get_or_set_uid(uidname, session=None):
@@ -1989,6 +2064,7 @@ def get_or_set_uid(uidname, session=None):
 
 __all__.append('get_or_set_uid')
 
+
 @session_wrapper
 def get_uid_from_fingerprint(fpr, session=None):
     q = session.query(Uid)
@@ -2003,14 +2079,16 @@ __all__.append('get_uid_from_fingerprint')
 
 ################################################################################
 
+
 class MetadataKey(ORMObject):
-    def __init__(self, key = None):
+    def __init__(self, key=None):
         self.key = key
 
     def properties(self):
         return ['key']
 
 __all__.append('MetadataKey')
+
 
 @session_wrapper
 def get_or_set_metadatakey(keyname, session=None):
@@ -2046,8 +2124,9 @@ __all__.append('get_or_set_metadatakey')
 
 ################################################################################
 
+
 class BinaryMetadata(ORMObject):
-    def __init__(self, key = None, value = None, binary = None):
+    def __init__(self, key=None, value=None, binary=None):
         self.key = key
         self.value = value
         if binary is not None:
@@ -2060,8 +2139,9 @@ __all__.append('BinaryMetadata')
 
 ################################################################################
 
+
 class SourceMetadata(ORMObject):
-    def __init__(self, key = None, value = None, source = None):
+    def __init__(self, key=None, value=None, source=None):
         self.key = key
         self.value = value
         if source is not None:
@@ -2073,6 +2153,7 @@ class SourceMetadata(ORMObject):
 __all__.append('SourceMetadata')
 
 ################################################################################
+
 
 class MetadataProxy(object):
     def __init__(self, session, query):
@@ -2105,9 +2186,10 @@ class MetadataProxy(object):
 
 ################################################################################
 
+
 class VersionCheck(ORMObject):
     def __init__(self, *args, **kwargs):
-	pass
+        pass
 
     def properties(self):
         #return ['suite_id', 'check', 'reference_id']
@@ -2115,8 +2197,9 @@ class VersionCheck(ORMObject):
 
 __all__.append('VersionCheck')
 
+
 @session_wrapper
-def get_version_checks(suite_name, check = None, session = None):
+def get_version_checks(suite_name, check=None, session=None):
     suite = get_suite(suite_name, session)
     if not suite:
         # Make sure that what we return is iterable so that list comprehensions
@@ -2131,6 +2214,7 @@ __all__.append('get_version_checks')
 
 ################################################################################
 
+
 class DBConn(object):
     """
     database module init.
@@ -2142,7 +2226,7 @@ class DBConn(object):
 
         if not getattr(self, 'initialised', False):
             self.initialised = True
-            self.debug = kwargs.has_key('debug')
+            self.debug = 'debug' in kwargs
             self.__createconn()
 
     def __setuptables(self):
@@ -2233,286 +2317,286 @@ class DBConn(object):
 
     def __setupmappers(self):
         mapper(Architecture, self.tbl_architecture,
-            properties = dict(arch_id = self.tbl_architecture.c.id,
-               suites = relation(Suite, secondary=self.tbl_suite_architectures,
+            properties=dict(arch_id=self.tbl_architecture.c.id,
+               suites=relation(Suite, secondary=self.tbl_suite_architectures,
                    order_by=self.tbl_suite.c.suite_name,
                    backref=backref('architectures', order_by=self.tbl_architecture.c.arch_string))),
             )
 
         mapper(ACL, self.tbl_acl,
-               properties = dict(
-                architectures = relation(Architecture, secondary=self.tbl_acl_architecture_map, collection_class=set),
-                fingerprints = relation(Fingerprint, secondary=self.tbl_acl_fingerprint_map, collection_class=set),
-                match_keyring = relation(Keyring, primaryjoin=(self.tbl_acl.c.match_keyring_id == self.tbl_keyrings.c.id)),
-                per_source = relation(ACLPerSource, collection_class=set),
-                ))
+               properties=dict(
+                   architectures=relation(Architecture, secondary=self.tbl_acl_architecture_map, collection_class=set),
+                   fingerprints=relation(Fingerprint, secondary=self.tbl_acl_fingerprint_map, collection_class=set),
+                   match_keyring=relation(Keyring, primaryjoin=(self.tbl_acl.c.match_keyring_id == self.tbl_keyrings.c.id)),
+                   per_source=relation(ACLPerSource, collection_class=set),
+                   ))
 
         mapper(ACLPerSource, self.tbl_acl_per_source,
-               properties = dict(
-                acl = relation(ACL),
-                fingerprint = relation(Fingerprint, primaryjoin=(self.tbl_acl_per_source.c.fingerprint_id == self.tbl_fingerprint.c.id)),
-                created_by = relation(Fingerprint, primaryjoin=(self.tbl_acl_per_source.c.created_by_id == self.tbl_fingerprint.c.id)),
-                ))
+               properties=dict(
+                   acl=relation(ACL),
+                   fingerprint=relation(Fingerprint, primaryjoin=(self.tbl_acl_per_source.c.fingerprint_id == self.tbl_fingerprint.c.id)),
+                   created_by=relation(Fingerprint, primaryjoin=(self.tbl_acl_per_source.c.created_by_id == self.tbl_fingerprint.c.id)),
+                   ))
 
         mapper(Archive, self.tbl_archive,
-               properties = dict(archive_id = self.tbl_archive.c.id,
-                                 archive_name = self.tbl_archive.c.name))
+               properties=dict(archive_id=self.tbl_archive.c.id,
+                                 archive_name=self.tbl_archive.c.name))
 
         mapper(ArchiveFile, self.tbl_files_archive_map,
-               properties = dict(archive = relation(Archive, backref='files'),
-                                 component = relation(Component),
-                                 file = relation(PoolFile, backref='archives')))
+               properties=dict(archive=relation(Archive, backref='files'),
+                                 component=relation(Component),
+                                 file=relation(PoolFile, backref='archives')))
 
         mapper(BuildQueue, self.tbl_build_queue,
-               properties = dict(queue_id = self.tbl_build_queue.c.id,
-                                 suite = relation(Suite, primaryjoin=(self.tbl_build_queue.c.suite_id==self.tbl_suite.c.id))))
+               properties=dict(queue_id=self.tbl_build_queue.c.id,
+                                 suite=relation(Suite, primaryjoin=(self.tbl_build_queue.c.suite_id==self.tbl_suite.c.id))))
 
         mapper(DBBinary, self.tbl_binaries,
-               properties = dict(binary_id = self.tbl_binaries.c.id,
-                                 package = self.tbl_binaries.c.package,
-                                 version = self.tbl_binaries.c.version,
-                                 maintainer_id = self.tbl_binaries.c.maintainer,
-                                 maintainer = relation(Maintainer),
-                                 source_id = self.tbl_binaries.c.source,
-                                 source = relation(DBSource, backref='binaries'),
-                                 arch_id = self.tbl_binaries.c.architecture,
-                                 architecture = relation(Architecture),
-                                 poolfile_id = self.tbl_binaries.c.file,
-                                 poolfile = relation(PoolFile),
-                                 binarytype = self.tbl_binaries.c.type,
-                                 fingerprint_id = self.tbl_binaries.c.sig_fpr,
-                                 fingerprint = relation(Fingerprint),
-                                 install_date = self.tbl_binaries.c.install_date,
-                                 suites = relation(Suite, secondary=self.tbl_bin_associations,
+               properties=dict(binary_id=self.tbl_binaries.c.id,
+                                 package=self.tbl_binaries.c.package,
+                                 version=self.tbl_binaries.c.version,
+                                 maintainer_id=self.tbl_binaries.c.maintainer,
+                                 maintainer=relation(Maintainer),
+                                 source_id=self.tbl_binaries.c.source,
+                                 source=relation(DBSource, backref='binaries'),
+                                 arch_id=self.tbl_binaries.c.architecture,
+                                 architecture=relation(Architecture),
+                                 poolfile_id=self.tbl_binaries.c.file,
+                                 poolfile=relation(PoolFile),
+                                 binarytype=self.tbl_binaries.c.type,
+                                 fingerprint_id=self.tbl_binaries.c.sig_fpr,
+                                 fingerprint=relation(Fingerprint),
+                                 install_date=self.tbl_binaries.c.install_date,
+                                 suites=relation(Suite, secondary=self.tbl_bin_associations,
                                      backref=backref('binaries', lazy='dynamic')),
-                                 extra_sources = relation(DBSource, secondary=self.tbl_extra_src_references,
+                                 extra_sources=relation(DBSource, secondary=self.tbl_extra_src_references,
                                      backref=backref('extra_binary_references', lazy='dynamic')),
-                                 key = relation(BinaryMetadata, cascade='all',
+                                 key=relation(BinaryMetadata, cascade='all',
                                      collection_class=attribute_mapped_collection('key'))),
         )
 
         mapper(Component, self.tbl_component,
-               properties = dict(component_id = self.tbl_component.c.id,
-                                 component_name = self.tbl_component.c.name),
+               properties=dict(component_id=self.tbl_component.c.id,
+                                 component_name=self.tbl_component.c.name),
         )
 
         mapper(DBConfig, self.tbl_config,
-               properties = dict(config_id = self.tbl_config.c.id))
+               properties=dict(config_id=self.tbl_config.c.id))
 
         mapper(DSCFile, self.tbl_dsc_files,
-               properties = dict(dscfile_id = self.tbl_dsc_files.c.id,
-                                 source_id = self.tbl_dsc_files.c.source,
-                                 source = relation(DBSource),
-                                 poolfile_id = self.tbl_dsc_files.c.file,
-                                 poolfile = relation(PoolFile)))
+               properties=dict(dscfile_id=self.tbl_dsc_files.c.id,
+                                 source_id=self.tbl_dsc_files.c.source,
+                                 source=relation(DBSource),
+                                 poolfile_id=self.tbl_dsc_files.c.file,
+                                 poolfile=relation(PoolFile)))
 
         mapper(ExternalOverride, self.tbl_external_overrides,
-                properties = dict(
-                    suite_id = self.tbl_external_overrides.c.suite,
-                    suite = relation(Suite),
-                    component_id = self.tbl_external_overrides.c.component,
-                    component = relation(Component)))
+                properties=dict(
+                    suite_id=self.tbl_external_overrides.c.suite,
+                    suite=relation(Suite),
+                    component_id=self.tbl_external_overrides.c.component,
+                    component=relation(Component)))
 
         mapper(PoolFile, self.tbl_files,
-               properties = dict(file_id = self.tbl_files.c.id,
-                                 filesize = self.tbl_files.c.size),
+               properties=dict(file_id=self.tbl_files.c.id,
+                                 filesize=self.tbl_files.c.size),
         )
 
         mapper(Fingerprint, self.tbl_fingerprint,
-               properties = dict(fingerprint_id = self.tbl_fingerprint.c.id,
-                                 uid_id = self.tbl_fingerprint.c.uid,
-                                 uid = relation(Uid),
-                                 keyring_id = self.tbl_fingerprint.c.keyring,
-                                 keyring = relation(Keyring),
-                                 acl = relation(ACL)),
+               properties=dict(fingerprint_id=self.tbl_fingerprint.c.id,
+                                 uid_id=self.tbl_fingerprint.c.uid,
+                                 uid=relation(Uid),
+                                 keyring_id=self.tbl_fingerprint.c.keyring,
+                                 keyring=relation(Keyring),
+                                 acl=relation(ACL)),
         )
 
         mapper(Keyring, self.tbl_keyrings,
-               properties = dict(keyring_name = self.tbl_keyrings.c.name,
-                                 keyring_id = self.tbl_keyrings.c.id,
-                                 acl = relation(ACL, primaryjoin=(self.tbl_keyrings.c.acl_id == self.tbl_acl.c.id)))),
+               properties=dict(keyring_name=self.tbl_keyrings.c.name,
+                                 keyring_id=self.tbl_keyrings.c.id,
+                                 acl=relation(ACL, primaryjoin=(self.tbl_keyrings.c.acl_id == self.tbl_acl.c.id)))),
 
         mapper(DBChange, self.tbl_changes,
-               properties = dict(change_id = self.tbl_changes.c.id,
-                                 seen = self.tbl_changes.c.seen,
-                                 source = self.tbl_changes.c.source,
-                                 binaries = self.tbl_changes.c.binaries,
-                                 architecture = self.tbl_changes.c.architecture,
-                                 distribution = self.tbl_changes.c.distribution,
-                                 urgency = self.tbl_changes.c.urgency,
-                                 maintainer = self.tbl_changes.c.maintainer,
-                                 changedby = self.tbl_changes.c.changedby,
-                                 date = self.tbl_changes.c.date,
-                                 version = self.tbl_changes.c.version))
+               properties=dict(change_id=self.tbl_changes.c.id,
+                                 seen=self.tbl_changes.c.seen,
+                                 source=self.tbl_changes.c.source,
+                                 binaries=self.tbl_changes.c.binaries,
+                                 architecture=self.tbl_changes.c.architecture,
+                                 distribution=self.tbl_changes.c.distribution,
+                                 urgency=self.tbl_changes.c.urgency,
+                                 maintainer=self.tbl_changes.c.maintainer,
+                                 changedby=self.tbl_changes.c.changedby,
+                                 date=self.tbl_changes.c.date,
+                                 version=self.tbl_changes.c.version))
 
         mapper(Maintainer, self.tbl_maintainer,
-               properties = dict(maintainer_id = self.tbl_maintainer.c.id,
-                   maintains_sources = relation(DBSource, backref='maintainer',
+               properties=dict(maintainer_id=self.tbl_maintainer.c.id,
+                   maintains_sources=relation(DBSource, backref='maintainer',
                        primaryjoin=(self.tbl_maintainer.c.id==self.tbl_source.c.maintainer)),
-                   changed_sources = relation(DBSource, backref='changedby',
+                   changed_sources=relation(DBSource, backref='changedby',
                        primaryjoin=(self.tbl_maintainer.c.id==self.tbl_source.c.changedby))),
         )
 
         mapper(NewComment, self.tbl_new_comments,
-               properties = dict(comment_id = self.tbl_new_comments.c.id,
-                                 policy_queue = relation(PolicyQueue)))
+               properties=dict(comment_id=self.tbl_new_comments.c.id,
+                                 policy_queue=relation(PolicyQueue)))
 
         mapper(Override, self.tbl_override,
-               properties = dict(suite_id = self.tbl_override.c.suite,
-                                 suite = relation(Suite, \
+               properties=dict(suite_id=self.tbl_override.c.suite,
+                                 suite=relation(Suite, \
                                     backref=backref('overrides', lazy='dynamic')),
-                                 package = self.tbl_override.c.package,
-                                 component_id = self.tbl_override.c.component,
-                                 component = relation(Component, \
+                                 package=self.tbl_override.c.package,
+                                 component_id=self.tbl_override.c.component,
+                                 component=relation(Component, \
                                     backref=backref('overrides', lazy='dynamic')),
-                                 priority_id = self.tbl_override.c.priority,
-                                 priority = relation(Priority, \
+                                 priority_id=self.tbl_override.c.priority,
+                                 priority=relation(Priority, \
                                     backref=backref('overrides', lazy='dynamic')),
-                                 section_id = self.tbl_override.c.section,
-                                 section = relation(Section, \
+                                 section_id=self.tbl_override.c.section,
+                                 section=relation(Section, \
                                     backref=backref('overrides', lazy='dynamic')),
-                                 overridetype_id = self.tbl_override.c.type,
-                                 overridetype = relation(OverrideType, \
+                                 overridetype_id=self.tbl_override.c.type,
+                                 overridetype=relation(OverrideType, \
                                     backref=backref('overrides', lazy='dynamic'))))
 
         mapper(OverrideType, self.tbl_override_type,
-               properties = dict(overridetype = self.tbl_override_type.c.type,
-                                 overridetype_id = self.tbl_override_type.c.id))
+               properties=dict(overridetype=self.tbl_override_type.c.type,
+                                 overridetype_id=self.tbl_override_type.c.id))
 
         mapper(PolicyQueue, self.tbl_policy_queue,
-               properties = dict(policy_queue_id = self.tbl_policy_queue.c.id,
-                                 suite = relation(Suite, primaryjoin=(self.tbl_policy_queue.c.suite_id == self.tbl_suite.c.id))))
+               properties=dict(policy_queue_id=self.tbl_policy_queue.c.id,
+                                 suite=relation(Suite, primaryjoin=(self.tbl_policy_queue.c.suite_id == self.tbl_suite.c.id))))
 
         mapper(PolicyQueueUpload, self.tbl_policy_queue_upload,
-               properties = dict(
-                   changes = relation(DBChange),
-                   policy_queue = relation(PolicyQueue, backref='uploads'),
-                   target_suite = relation(Suite),
-                   source = relation(DBSource),
-                   binaries = relation(DBBinary, secondary=self.tbl_policy_queue_upload_binaries_map),
-                ))
+               properties=dict(
+                   changes=relation(DBChange),
+                   policy_queue=relation(PolicyQueue, backref='uploads'),
+                   target_suite=relation(Suite),
+                   source=relation(DBSource),
+                   binaries=relation(DBBinary, secondary=self.tbl_policy_queue_upload_binaries_map),
+                   ))
 
         mapper(PolicyQueueByhandFile, self.tbl_policy_queue_byhand_file,
-               properties = dict(
-                   upload = relation(PolicyQueueUpload, backref='byhand'),
+               properties=dict(
+                   upload=relation(PolicyQueueUpload, backref='byhand'),
                    )
                )
 
         mapper(Priority, self.tbl_priority,
-               properties = dict(priority_id = self.tbl_priority.c.id))
+               properties=dict(priority_id=self.tbl_priority.c.id))
 
         mapper(Section, self.tbl_section,
-               properties = dict(section_id = self.tbl_section.c.id,
+               properties=dict(section_id=self.tbl_section.c.id,
                                  section=self.tbl_section.c.section))
 
         mapper(SignatureHistory, self.tbl_signature_history)
 
         mapper(DBSource, self.tbl_source,
-               properties = dict(source_id = self.tbl_source.c.id,
-                                 version = self.tbl_source.c.version,
-                                 maintainer_id = self.tbl_source.c.maintainer,
-                                 poolfile_id = self.tbl_source.c.file,
-                                 poolfile = relation(PoolFile),
-                                 fingerprint_id = self.tbl_source.c.sig_fpr,
-                                 fingerprint = relation(Fingerprint),
-                                 changedby_id = self.tbl_source.c.changedby,
-                                 srcfiles = relation(DSCFile,
+               properties=dict(source_id=self.tbl_source.c.id,
+                                 version=self.tbl_source.c.version,
+                                 maintainer_id=self.tbl_source.c.maintainer,
+                                 poolfile_id=self.tbl_source.c.file,
+                                 poolfile=relation(PoolFile),
+                                 fingerprint_id=self.tbl_source.c.sig_fpr,
+                                 fingerprint=relation(Fingerprint),
+                                 changedby_id=self.tbl_source.c.changedby,
+                                 srcfiles=relation(DSCFile,
                                                      primaryjoin=(self.tbl_source.c.id==self.tbl_dsc_files.c.source)),
-                                 suites = relation(Suite, secondary=self.tbl_src_associations,
+                                 suites=relation(Suite, secondary=self.tbl_src_associations,
                                      backref=backref('sources', lazy='dynamic')),
-                                 uploaders = relation(Maintainer,
+                                 uploaders=relation(Maintainer,
                                      secondary=self.tbl_src_uploaders),
-                                 key = relation(SourceMetadata, cascade='all',
+                                 key=relation(SourceMetadata, cascade='all',
                                      collection_class=attribute_mapped_collection('key'))),
         )
 
         mapper(SrcFormat, self.tbl_src_format,
-               properties = dict(src_format_id = self.tbl_src_format.c.id,
-                                 format_name = self.tbl_src_format.c.format_name))
+               properties=dict(src_format_id=self.tbl_src_format.c.id,
+                                 format_name=self.tbl_src_format.c.format_name))
 
         mapper(Suite, self.tbl_suite,
-               properties = dict(suite_id = self.tbl_suite.c.id,
-                                 policy_queue = relation(PolicyQueue, primaryjoin=(self.tbl_suite.c.policy_queue_id == self.tbl_policy_queue.c.id)),
-                                 new_queue = relation(PolicyQueue, primaryjoin=(self.tbl_suite.c.new_queue_id == self.tbl_policy_queue.c.id)),
-                                 debug_suite = relation(Suite, remote_side=[self.tbl_suite.c.id]),
-                                 copy_queues = relation(BuildQueue,
+               properties=dict(suite_id=self.tbl_suite.c.id,
+                                 policy_queue=relation(PolicyQueue, primaryjoin=(self.tbl_suite.c.policy_queue_id == self.tbl_policy_queue.c.id)),
+                                 new_queue=relation(PolicyQueue, primaryjoin=(self.tbl_suite.c.new_queue_id == self.tbl_policy_queue.c.id)),
+                                 debug_suite=relation(Suite, remote_side=[self.tbl_suite.c.id]),
+                                 copy_queues=relation(BuildQueue,
                                      secondary=self.tbl_suite_build_queue_copy),
-                                 srcformats = relation(SrcFormat, secondary=self.tbl_suite_src_formats,
+                                 srcformats=relation(SrcFormat, secondary=self.tbl_suite_src_formats,
                                      backref=backref('suites', lazy='dynamic')),
-                                 archive = relation(Archive, backref='suites'),
-                                 acls = relation(ACL, secondary=self.tbl_suite_acl_map, collection_class=set),
-                                 components = relation(Component, secondary=self.tbl_component_suite,
+                                 archive=relation(Archive, backref='suites'),
+                                 acls=relation(ACL, secondary=self.tbl_suite_acl_map, collection_class=set),
+                                 components=relation(Component, secondary=self.tbl_component_suite,
                                                    order_by=self.tbl_component.c.ordering,
                                                    backref=backref('suites'))),
         )
 
         mapper(Uid, self.tbl_uid,
-               properties = dict(uid_id = self.tbl_uid.c.id,
-                                 fingerprint = relation(Fingerprint)),
+               properties=dict(uid_id=self.tbl_uid.c.id,
+                                 fingerprint=relation(Fingerprint)),
         )
 
         mapper(BinContents, self.tbl_bin_contents,
-            properties = dict(
-                binary = relation(DBBinary,
+            properties=dict(
+                binary=relation(DBBinary,
                     backref=backref('contents', lazy='dynamic', cascade='all')),
-                file = self.tbl_bin_contents.c.file))
+                file=self.tbl_bin_contents.c.file))
 
         mapper(SrcContents, self.tbl_src_contents,
-            properties = dict(
-                source = relation(DBSource,
+            properties=dict(
+                source=relation(DBSource,
                     backref=backref('contents', lazy='dynamic', cascade='all')),
-                file = self.tbl_src_contents.c.file))
+                file=self.tbl_src_contents.c.file))
 
         mapper(MetadataKey, self.tbl_metadata_keys,
-            properties = dict(
-                key_id = self.tbl_metadata_keys.c.key_id,
-                key = self.tbl_metadata_keys.c.key))
+            properties=dict(
+                key_id=self.tbl_metadata_keys.c.key_id,
+                key=self.tbl_metadata_keys.c.key))
 
         mapper(BinaryMetadata, self.tbl_binaries_metadata,
-            properties = dict(
-                binary_id = self.tbl_binaries_metadata.c.bin_id,
-                binary = relation(DBBinary),
-                key_id = self.tbl_binaries_metadata.c.key_id,
-                key = relation(MetadataKey),
-                value = self.tbl_binaries_metadata.c.value))
+            properties=dict(
+                binary_id=self.tbl_binaries_metadata.c.bin_id,
+                binary=relation(DBBinary),
+                key_id=self.tbl_binaries_metadata.c.key_id,
+                key=relation(MetadataKey),
+                value=self.tbl_binaries_metadata.c.value))
 
         mapper(SourceMetadata, self.tbl_source_metadata,
-            properties = dict(
-                source_id = self.tbl_source_metadata.c.src_id,
-                source = relation(DBSource),
-                key_id = self.tbl_source_metadata.c.key_id,
-                key = relation(MetadataKey),
-                value = self.tbl_source_metadata.c.value))
+            properties=dict(
+                source_id=self.tbl_source_metadata.c.src_id,
+                source=relation(DBSource),
+                key_id=self.tbl_source_metadata.c.key_id,
+                key=relation(MetadataKey),
+                value=self.tbl_source_metadata.c.value))
 
-	mapper(VersionCheck, self.tbl_version_check,
-	    properties = dict(
-		suite_id = self.tbl_version_check.c.suite,
-		suite = relation(Suite, primaryjoin=self.tbl_version_check.c.suite==self.tbl_suite.c.id),
-		reference_id = self.tbl_version_check.c.reference,
-		reference = relation(Suite, primaryjoin=self.tbl_version_check.c.reference==self.tbl_suite.c.id, lazy='joined')))
+        mapper(VersionCheck, self.tbl_version_check,
+            properties=dict(
+                suite_id=self.tbl_version_check.c.suite,
+                suite=relation(Suite, primaryjoin=self.tbl_version_check.c.suite==self.tbl_suite.c.id),
+                reference_id=self.tbl_version_check.c.reference,
+                reference=relation(Suite, primaryjoin=self.tbl_version_check.c.reference==self.tbl_suite.c.id, lazy='joined')))
 
     ## Connection functions
     def __createconn(self):
         from config import Config
         cnf = Config()
-        if cnf.has_key("DB::Service"):
+        if "DB::Service" in cnf:
             connstr = "postgresql://service=%s" % cnf["DB::Service"]
-        elif cnf.has_key("DB::Host"):
+        elif "DB::Host" in cnf:
             # TCP/IP
             connstr = "postgresql://%s" % cnf["DB::Host"]
-            if cnf.has_key("DB::Port") and cnf["DB::Port"] != "-1":
+            if "DB::Port" in cnf and cnf["DB::Port"] != "-1":
                 connstr += ":%s" % cnf["DB::Port"]
             connstr += "/%s" % cnf["DB::Name"]
         else:
             # Unix Socket
             connstr = "postgresql:///%s" % cnf["DB::Name"]
-            if cnf.has_key("DB::Port") and cnf["DB::Port"] != "-1":
+            if "DB::Port" in cnf and cnf["DB::Port"] != "-1":
                 connstr += "?port=%s" % cnf["DB::Port"]
 
         engine_args = { 'echo': self.debug }
-        if cnf.has_key('DB::PoolSize'):
+        if 'DB::PoolSize' in cnf:
             engine_args['pool_size'] = int(cnf['DB::PoolSize'])
-        if cnf.has_key('DB::MaxOverflow'):
+        if 'DB::MaxOverflow' in cnf:
             engine_args['max_overflow'] = int(cnf['DB::MaxOverflow'])
         if cnf.get('DB::Unicode') == 'false':
             engine_args['use_native_unicode'] = False
@@ -2548,7 +2632,7 @@ class DBConn(object):
 
         self.pid = os.getpid()
 
-    def session(self, work_mem = 0):
+    def session(self, work_mem=0):
         '''
         Returns a new session object. If a work_mem parameter is provided a new
         transaction is started and the work_mem parameter is set for this

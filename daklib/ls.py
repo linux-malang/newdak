@@ -24,6 +24,7 @@ import daklib.daksql as daksql
 from daklib.dbconn import DBConn
 from collections import defaultdict
 
+
 def list_packages(packages, suites=None, components=None, architectures=None, binary_types=None,
                   source_and_binary=False, regex=False,
                   format=None, highest=None):
@@ -97,9 +98,7 @@ def list_packages(packages, suites=None, components=None, architectures=None, bi
             val = lambda: defaultdict(val)
             ret = val()
             for row in result:
-                ret[row[t.c.package]] \
-                   [row[t.c.display_suite]] \
-                   [row[t.c.version]]={'component':      row[t.c.component],
+                ret[row[t.c.package]][row[t.c.display_suite]][row[t.c.version]]={'component':      row[t.c.component],
                                        'architectures':  row[c_architectures].split(','),
                                        'source':         row[t.c.source],
                                        'source_version': row[t.c.source_version]

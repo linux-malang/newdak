@@ -21,8 +21,10 @@
 from daklib.architecture import match_architecture
 from daklib.utils import extract_component_from_section
 
+
 class InvalidSource(Exception):
     pass
+
 
 class PackageListEntry(object):
     def __init__(self, name, package_type, section, component, priority, **other):
@@ -61,6 +63,7 @@ class PackageListEntry(object):
             if built_on_arch is None:
                 built = None
         return built
+
 
 class PackageList(object):
     def __init__(self, source):
@@ -144,7 +147,7 @@ class PackageList(object):
         has_arch_dep = False
         for entry in self.package_list:
             built_on_all = entry.built_on_architecture('all')
-            if built_on_all == False:
+            if built_on_all is False:
                 return True
             if built_on_all is None:
                 has_arch_dep = None

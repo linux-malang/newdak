@@ -42,7 +42,8 @@ Logger = None
 
 ################################################################################
 
-def usage (exit_code=0):
+
+def usage(exit_code=0):
     print """Usage: dak manage-build-queues [OPTIONS] buildqueue1 buildqueue2
 Manage the contents of one or more build queues
 
@@ -53,6 +54,7 @@ Manage the contents of one or more build queues
     sys.exit(exit_code)
 
 ################################################################################
+
 
 def clean(build_queue, transaction, now=None):
     session = transaction.session
@@ -122,14 +124,16 @@ def clean(build_queue, transaction, now=None):
         Logger.log(["removed source from build queue", build_queue.queue_name, source.source, source.version])
         transaction.remove_source(source, suite)
 
-def main ():
+
+def main():
     global Options, Logger
 
     cnf = Config()
 
     for i in ["Help", "No-Action", "All"]:
-        if not cnf.has_key("Manage-Build-Queues::Options::%s" % (i)):
-            cnf["Manage-Build-Queues::Options::%s" % (i)] = ""
+        key = "Manage-Build-Queues::Options::%s" % i
+        if key not in cnf:
+            cnf[key] = ""
 
     Arguments = [('h',"help","Manage-Build-Queues::Options::Help"),
                  ('n',"no-action","Manage-Build-Queues::Options::No-Action"),

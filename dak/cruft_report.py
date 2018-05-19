@@ -35,7 +35,10 @@ Check for obsolete binary packages
 
 ################################################################################
 
-import commands, os, sys, re
+import commands
+import os
+import sys
+import re
 import apt_pkg
 
 from daklib.config import Config
@@ -46,12 +49,13 @@ from daklib.cruft import *
 
 ################################################################################
 
-no_longer_in_suite = {}; # Really should be static to add_nbs, but I'm lazy
+no_longer_in_suite = {} # Really should be static to add_nbs, but I'm lazy
 
 source_binaries = {}
 source_versions = {}
 
 ################################################################################
+
 
 def usage(exit_code=0):
     print """Usage: dak cruft-report
@@ -66,9 +70,10 @@ Check for obsolete or duplicated packages.
 
 ################################################################################
 
+
 def add_nbs(nbs_d, source, version, package, suite_id, session):
     # Ensure the package is still in the suite (someone may have already removed it)
-    if no_longer_in_suite.has_key(package):
+    if package in no_longer_in_suite:
         return
     else:
         q = session.execute("""SELECT b.id FROM binaries b, bin_associations ba
@@ -86,6 +91,8 @@ def add_nbs(nbs_d, source, version, package, suite_id, session):
 ################################################################################
 
 # Check for packages built on architectures they shouldn't be.
+
+
 def do_anais(architecture, binaries_list, source, session):
     if architecture == "any" or architecture == "all":
         return ""
@@ -105,7 +112,7 @@ def do_anais(architecture, binaries_list, source, session):
         for i in ql:
             arch = i[0]
             version = i[1]
-            if architectures.has_key(arch):
+            if arch in architectures:
                 versions.append(version)
         versions.sort(apt_pkg.version_compare)
         if versions:
@@ -117,7 +124,7 @@ def do_anais(architecture, binaries_list, source, session):
         for i in ql:
             arch = i[0]
             version = i[1]
-            if not architectures.has_key(arch):
+            if arch not in architectures:
                 versions_d.setdefault(version, [])
                 versions_d[version].append(arch)
 
@@ -138,7 +145,7 @@ def do_anais(architecture, binaries_list, source, session):
 # package any more, and have them listed as Not-For-Us
 def do_nfu(nfu_packages):
     output = ""
-    
+
     a2p = {}
 
     for architecture in nfu_packages:
@@ -146,7 +153,6 @@ def do_nfu(nfu_packages):
         for (package,bver,sver) in nfu_packages[architecture]:
             output += "  * [%s] does not want %s (binary %s, source %s)\n" % (architecture, package, bver, sver)
             a2p[architecture].append(package)
-
 
     if output:
         print "Obsolete by Not-For-Us"
@@ -161,13 +167,14 @@ def do_nfu(nfu_packages):
                     (suite.suite_name, architecture, " ".join(a2p[architecture])))
         print
 
+
 def parse_nfu(architecture):
     cnf = Config()
     # utils/hpodder_1.1.5.0: Not-For-Us [optional:out-of-date]
     r = re.compile("^\w+/([^_]+)_.*: Not-For-Us")
 
     ret = set()
-    
+
     filename = "%s/%s-all.txt" % (cnf["Cruft-Report::Options::Wanna-Build-Dump"], architecture)
 
     # Not all architectures may have a wanna-build dump, so we want to ignore missin
@@ -188,6 +195,7 @@ def parse_nfu(architecture):
     return ret
 
 ################################################################################
+
 
 def do_newer_version(lowersuite_name, highersuite_name, code, session):
     list = newer_version(lowersuite_name, highersuite_name, session)
@@ -231,6 +239,7 @@ def reportWithoutSource(suite_name, suite_id, session, rdeps=False):
         else:
             print
 
+
 def queryNewerAll(suite_name, session):
     """searches for arch != all packages that have an arch == all
     package with a higher version in the same suite"""
@@ -250,6 +259,7 @@ select bab1.package, bab1.version as oldver,
     group by bab1.package, oldver, bab1.suite, newver"""
     return session.execute(query, { 'suite_name': suite_name })
 
+
 def reportNewerAll(suite_name, session):
     rows = queryNewerAll(suite_name, session)
     title = 'obsolete arch any packages in suite %s' % suite_name
@@ -265,25 +275,24 @@ def reportNewerAll(suite_name, session):
             (message, suite_name, oldarch, package)
 
 
-
 def reportNBS(suite_name, suite_id, rdeps=False):
     session = DBConn().session()
     nbsRows = queryNBS(suite_id, session)
     title = 'NBS packages in suite %s' % suite_name
     if nbsRows.rowcount > 0:
-	print '%s\n%s\n' % (title, '-' * len(title))
+        print '%s\n%s\n' % (title, '-' * len(title))
     for row in nbsRows:
-	(pkg_list, arch_list, source, version) = row
-	pkg_string = ' '.join(pkg_list)
-	arch_string = ','.join(arch_list)
-	print "* source package %s version %s no longer builds" % \
-	    (source, version)
-	print "  binary package(s): %s" % pkg_string
-	print "  on %s" % arch_string
-	print "  - suggested command:"
-	message = '"[auto-cruft] NBS (no longer built by %s)"' % source
-	print "    dak rm -m %s -s %s -a %s -p -R -b %s" % \
-	    (message, suite_name, arch_string, pkg_string)
+        (pkg_list, arch_list, source, version) = row
+        pkg_string = ' '.join(pkg_list)
+        arch_string = ','.join(arch_list)
+        print "* source package %s version %s no longer builds" % \
+            (source, version)
+        print "  binary package(s): %s" % pkg_string
+        print "  on %s" % arch_string
+        print "  - suggested command:"
+        message = '"[auto-cruft] NBS (no longer built by %s)"' % source
+        print "    dak rm -m %s -s %s -a %s -p -R -b %s" % \
+            (message, suite_name, arch_string, pkg_string)
         if rdeps:
             if utils.check_reverse_depends(pkg_list, suite_name, arch_list, session, True):
                 print
@@ -293,12 +302,14 @@ def reportNBS(suite_name, suite_id, rdeps=False):
             print
     session.close()
 
+
 def reportAllNBS(suite_name, suite_id, session, rdeps=False):
     reportWithoutSource(suite_name, suite_id, session, rdeps)
     reportNewerAll(suite_name, session)
     reportNBS(suite_name, suite_id, rdeps)
 
 ################################################################################
+
 
 def do_dubious_nbs(dubious_nbs):
     print "Dubious NBS"
@@ -323,6 +334,7 @@ def do_dubious_nbs(dubious_nbs):
 
 ################################################################################
 
+
 def obsolete_source(suite_name, session):
     """returns obsolete source packages for suite_name without binaries
     in the same suite sorted by install_date; install_date should help
@@ -341,15 +353,16 @@ SELECT ss.src, ss.source, ss.version,
     to_char(ss.install_date, 'YYYY-MM-DD') AS install_date
     FROM source_suite ss
     JOIN source_suite_unique ssu
-	ON ss.source = ssu.source AND ss.suite = ssu.suite
+        ON ss.source = ssu.source AND ss.suite = ssu.suite
     JOIN suite s ON s.id = ss.suite
     LEFT JOIN bin_associations_binaries bab
-	ON ss.src = bab.source AND ss.suite = bab.suite
+        ON ss.src = bab.source AND ss.suite = bab.suite
     WHERE s.suite_name = :suite_name AND bab.id IS NULL
       AND now() - ss.install_date > '1 day'::interval
     ORDER BY install_date"""
     args = { 'suite_name': suite_name }
     return session.execute(query, args)
+
 
 def source_bin(source, session):
     """returns binaries built by source for all or no suite grouped and
@@ -365,6 +378,7 @@ SELECT b.package
     args = { 'source': source }
     return session.execute(query, args)
 
+
 def newest_source_bab(suite_name, package, session):
     """returns newest source that builds binary package in suite grouped
     and sorted by source and package name"""
@@ -375,10 +389,11 @@ SELECT sas.source, MAX(sas.version) AS srcver
     JOIN bin_associations_binaries bab ON sas.src = bab.source
     JOIN suite s on s.id = bab.suite
     WHERE s.suite_name = :suite_name AND bab.package = :package
-	GROUP BY sas.source, bab.package
+        GROUP BY sas.source, bab.package
         ORDER BY sas.source, bab.package"""
     args = { 'suite_name': suite_name, 'package': package }
     return session.execute(query, args)
+
 
 def report_obsolete_source(suite_name, session):
     rows = obsolete_source(suite_name, session)
@@ -403,6 +418,7 @@ def report_obsolete_source(suite_name, session):
         rm_opts = "-S -p -m \"[auto-cruft] obsolete source package\""
         print "     dak rm -s %s %s %s\n" % (suite_name, rm_opts, old_source)
 
+
 def get_suite_binaries(suite, session):
     # Initalize a large hash table of all binary packages
     binaries = {}
@@ -418,6 +434,7 @@ def get_suite_binaries(suite, session):
     return binaries
 
 ################################################################################
+
 
 def report_outdated_nonfree(suite, session, rdeps=False):
 
@@ -468,9 +485,9 @@ def report_outdated_nonfree(suite, session, rdeps=False):
         arch = package[2]
         if arch == 'all':
             continue
-        if not source in packages:
+        if source not in packages:
             packages[source] = {}
-        if not binary in packages[source]:
+        if binary not in packages[source]:
             packages[source][binary] = set()
         packages[source][binary].add(arch)
     if packages:
@@ -497,7 +514,8 @@ def report_outdated_nonfree(suite, session, rdeps=False):
 
 ################################################################################
 
-def main ():
+
+def main():
     global suite, suite_id, source_binaries, source_versions
 
     cnf = Config()
@@ -508,15 +526,16 @@ def main ():
                  ('s',"suite","Cruft-Report::Options::Suite","HasArg"),
                  ('w',"wanna-build-dump","Cruft-Report::Options::Wanna-Build-Dump","HasArg")]
     for i in [ "help", "Rdep-Check" ]:
-        if not cnf.has_key("Cruft-Report::Options::%s" % (i)):
-            cnf["Cruft-Report::Options::%s" % (i)] = ""
+        key = "Cruft-Report::Options::%s" % i
+        if key not in cnf:
+            cnf[key] = ""
 
     cnf["Cruft-Report::Options::Suite"] = cnf.get("Dinstall::DefaultSuite", "unstable")
 
-    if not cnf.has_key("Cruft-Report::Options::Mode"):
+    if "Cruft-Report::Options::Mode" not in cnf:
         cnf["Cruft-Report::Options::Mode"] = "daily"
 
-    if not cnf.has_key("Cruft-Report::Options::Wanna-Build-Dump"):
+    if "Cruft-Report::Options::Wanna-Build-Dump" not in cnf:
         cnf["Cruft-Report::Options::Wanna-Build-Dump"] = "/srv/ftp-master.debian.org/scripts/nfu"
 
     apt_pkg.parse_commandline(cnf.Cnf, Arguments, sys.argv)
@@ -586,12 +605,12 @@ def main ():
                 source_version = Sources.section.find('Version')
                 architecture = Sources.section.find('Architecture')
                 binaries = Sources.section.find('Binary')
-                binaries_list = [ i.strip() for i in  binaries.split(',') ]
+                binaries_list = [ i.strip() for i in binaries.split(',') ]
 
                 if "bnb" in checks:
                     # Check for binaries not built on any architecture.
                     for binary in binaries_list:
-                        if not bins_in_suite.has_key(binary):
+                        if binary not in bins_in_suite:
                             bin_not_built.setdefault(source, {})
                             bin_not_built[source][binary] = ""
 
@@ -609,7 +628,7 @@ def main ():
     # Checks based on the Packages files
     check_components = components[:]
     if suite_name != "experimental":
-        check_components.append('main/debian-installer');
+        check_components.append('main/debian-installer')
 
     for component in check_components:
         architectures = [ a.arch_string for a in get_suite_architectures(suite_name,
@@ -632,7 +651,7 @@ def main ():
                     version = Packages.section.find('Version')
                     if source == "":
                         source = package
-                    if bin2source.has_key(package) and \
+                    if package in bin2source and \
                            apt_pkg.version_compare(version, bin2source[package]["version"]) > 0:
                         bin2source[package]["version"] = version
                         bin2source[package]["source"] = source
@@ -644,7 +663,7 @@ def main ():
                         m = re_extract_src_version.match(source)
                         source = m.group(1)
                         version = m.group(2)
-                    if not bin_pkgs.has_key(package):
+                    if package not in bin_pkgs:
                         nbs.setdefault(source,{})
                         nbs[source].setdefault(package, {})
                         nbs[source][package][version] = ""

@@ -30,6 +30,8 @@ from daklib.dak_exceptions import DBUpdateError
 from daklib.config import Config
 
 ################################################################################
+
+
 def do_update(self):
     """
     Add suite options for overrides and control-suite to DB
@@ -46,7 +48,7 @@ def do_update(self):
         c.execute("COMMENT ON COLUMN suite.overrideprocess IS %s", ['If NOT NULL, check-overrides will take missing overrides from the named suite'])
 
         # Migrate config file values into database
-        if cnf.has_key("Check-Overrides::OverrideSuites"):
+        if "Check-Overrides::OverrideSuites" in cnf:
             for suitename in cnf.subtree("Check-Overrides::OverrideSuites").list():
                 if cnf.get("Check-Overrides::OverrideSuites::%s::Process" % suitename, "0") == "1":
                     print "Marking %s to have overrides processed automatically" % suitename.lower()

@@ -412,7 +412,8 @@ def decruft_newer_version_in(othersuite, suite_name, suite_id, rm_msg, session, 
 
 ################################################################################
 
-def main ():
+
+def main():
     global Options
     cnf = Config()
 
@@ -426,8 +427,9 @@ def main ():
                  ("\0",'decruft-equal-versions',"Auto-Decruft::Options::OtherSuiteDecruftEqual")
                 ]
     for i in ["help", "Dry-Run", "Debug", "OtherSuite", "OtherSuiteRMMsg", "OtherSuiteDecruftEqual"]:
-        if not cnf.has_key("Auto-Decruft::Options::%s" % (i)):
-            cnf["Auto-Decruft::Options::%s" % (i)] = ""
+        key = "Auto-Decruft::Options::%s" % i
+        if key not in cnf:
+            cnf[key] = ""
 
     cnf["Auto-Decruft::Options::Suite"] = cnf.get("Dinstall::DefaultSuite", "unstable")
 

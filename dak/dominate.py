@@ -25,7 +25,8 @@ Remove obsolete source and binary associations from suites.
 from daklib.dbconn import *
 from daklib.config import Config
 from daklib import daklog, utils
-import apt_pkg, sys
+import apt_pkg
+import sys
 
 from sqlalchemy.sql import exists, text
 from tabulate import tabulate
@@ -207,7 +208,7 @@ SELECT
   ORDER BY
     source_package, source_version, package, version, arch, suite
 ''').params(
-    suite_ids = [s.suite_id for s in suites],
+    suite_ids=[s.suite_id for s in suites],
 ))
 
 
@@ -217,7 +218,7 @@ def delete_associations_table(table, ids, session):
             FROM {}
             WHERE id = ANY(:assoc_ids)
     '''.format(table)).params(
-        assoc_ids = list(ids),
+        assoc_ids=list(ids),
     ))
 
     assert result.rowcount == len(ids), 'Rows deleted are not equal to deletion requests'
@@ -252,6 +253,7 @@ SUITE can be comma (or space) separated list, e.g.
     --suite=testing,unstable"""
     sys.exit()
 
+
 def main():
     global Options, Logger
     cnf = Config()
@@ -268,7 +270,7 @@ def main():
         usage()
 
     if not Options['No-Action']:
-       Logger = daklog.Logger("dominate")
+        Logger = daklog.Logger("dominate")
     session = DBConn().session()
 
     suites_query = (session
@@ -278,7 +280,7 @@ def main():
     if 'Suite' in Options:
         suites_query = suites_query.filter(Suite.suite_name.in_(utils.split_args(Options['Suite'])))
     if not Options['Force']:
-        suites_query = suites_query.filter_by(untouchable = False)
+        suites_query = suites_query.filter_by(untouchable=False)
     suites = suites_query.all()
 
     assocs = list(retrieve_associations(suites, session))

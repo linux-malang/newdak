@@ -36,6 +36,7 @@ import apt_pkg
 from daklib import utils
 import debianbts as bts
 
+
 def usage():
     print """
 SYNOPSIS
@@ -65,6 +66,7 @@ arguments = [('s','simulate','BtsCategorize::Options::Simulate'),
              ('q', 'quiet', 'BtsCategorize::Options::Quiet'),
              ('h', 'help', 'BtsCategorize::Options::Help')]
 
+
 class BugClassifier(object):
     """
     classify bugs using usertags based on the bug subject lines
@@ -92,14 +94,13 @@ class BugClassifier(object):
         by one of our usertags.
         """
 
-	tagged_bugs = bts.get_usertag('ftp.debian.org@packages.debian.org')
-	tagged_bugs_ftp = []
-	for tags in tagged_bugs.keys():
-		tagged_bugs_ftp += tagged_bugs[tags]
+        tagged_bugs = bts.get_usertag('ftp.debian.org@packages.debian.org')
+        tagged_bugs_ftp = []
+        for tags in tagged_bugs.keys():
+            tagged_bugs_ftp += tagged_bugs[tags]
 
         return [ bug for bug in bts.get_status( bts.get_bugs("package", "ftp.debian.org" ) ) \
-                     if bug.pending=='pending' and not bug.bug_num in tagged_bugs_ftp ]
-
+                     if bug.pending=='pending' and bug.bug_num not in tagged_bugs_ftp ]
 
     def classify_bug(self, bug):
         """
@@ -135,6 +136,7 @@ class BugClassifier(object):
             log.error("couldn't retrieve bugs from soap interface: %s" % sys.exc_info()[0])
             return None
 
+
 def send_email(commands, simulate=False):
     global Cnf
 
@@ -149,6 +151,7 @@ def send_email(commands, simulate=False):
     else:
         utils.send_mail( bts_mail_message )
 
+
 def main():
     """
     for now, we just dump a list of commands that could be sent for
@@ -159,7 +162,7 @@ def main():
 
     for arg in arguments:
         opt = "BtsCategorize::Options::%s" % arg[1]
-        if not Cnf.has_key(opt):
+        if opt not in Cnf:
             Cnf[opt] = ""
 
     packages = apt_pkg.parse_commandline(Cnf, arguments, sys.argv)
@@ -180,7 +183,7 @@ def main():
 
     logging.basicConfig( level=level,
                          format='%(asctime)s %(levelname)s %(message)s',
-                         stream = sys.stderr )
+                         stream=sys.stderr )
 
     body = BugClassifier().email_text()
 

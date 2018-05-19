@@ -60,12 +60,14 @@ Logger = None
 
 ################################################################################
 
+
 def do_comments(dir, srcqueue, opref, npref, line, fn, transaction):
     session = transaction.session
     actions = []
     for comm in [ x for x in os.listdir(dir) if x.startswith(opref) ]:
         lines = open(os.path.join(dir, comm)).readlines()
-        if len(lines) == 0 or lines[0] != line + "\n": continue
+        if len(lines) == 0 or lines[0] != line + "\n":
+            continue
 
         # If the ACCEPT includes a _<arch> we only accept that .changes.
         # Otherwise we accept all .changes that start with the given prefix
@@ -98,6 +100,7 @@ def do_comments(dir, srcqueue, opref, npref, line, fn, transaction):
 
 ################################################################################
 
+
 def try_or_reject(function):
     def wrapper(upload, srcqueue, comments, transaction):
         try:
@@ -118,6 +121,7 @@ def try_or_reject(function):
     return wrapper
 
 ################################################################################
+
 
 @try_or_reject
 def comment_accept(upload, srcqueue, comments, transaction):
@@ -262,7 +266,7 @@ def comment_accept(upload, srcqueue, comments, transaction):
         # As per policy 5.6.17, the urgency can be followed by a space and a
         # comment.  Extract only the urgency from the string.
         if ' ' in urgency:
-          (urgency, comment) = urgency.split(' ', 1)
+            urgency, comment = urgency.split(' ', 1)
         if urgency not in cnf.value_list('Urgency::Valid'):
             urgency = cnf['Urgency::Default']
         UrgencyLog().log(upload.source.source, upload.source.version, urgency)
@@ -289,9 +293,11 @@ def comment_accept(upload, srcqueue, comments, transaction):
 
 ################################################################################
 
+
 @try_or_reject
 def comment_reject(*args):
     real_comment_reject(*args, manual=True)
+
 
 def real_comment_reject(upload, srcqueue, comments, transaction, notify=True, manual=False):
     cnf = Config()
@@ -360,6 +366,7 @@ def real_comment_reject(upload, srcqueue, comments, transaction, notify=True, ma
 
 ################################################################################
 
+
 def remove_upload(upload, transaction):
     fs = transaction.fs
     session = transaction.session
@@ -389,6 +396,7 @@ def remove_upload(upload, transaction):
 
 ################################################################################
 
+
 def get_processed_upload(upload):
     pu = daklib.announce.ProcessedUpload()
 
@@ -413,6 +421,7 @@ def get_processed_upload(upload):
     return pu
 
 ################################################################################
+
 
 def remove_unreferenced_binaries(policy_queue, transaction):
     """Remove binaries that are no longer referenced by an upload
@@ -439,6 +448,7 @@ def remove_unreferenced_binaries(policy_queue, transaction):
     for binary in binaries:
         Logger.log(["removed binary from policy queue", policy_queue.queue_name, binary.package, binary.version])
         transaction.remove_binary(binary, suite)
+
 
 def remove_unreferenced_sources(policy_queue, transaction):
     """Remove sources that are no longer referenced by an upload or a binary
@@ -471,6 +481,7 @@ def remove_unreferenced_sources(policy_queue, transaction):
 
 ################################################################################
 
+
 def main():
     global Options, Logger
 
@@ -481,8 +492,9 @@ def main():
                  ('n',"no-action","Process-Policy::Options::No-Action")]
 
     for i in ["help", "no-action"]:
-        if not cnf.has_key("Process-Policy::Options::%s" % (i)):
-            cnf["Process-Policy::Options::%s" % (i)] = ""
+        key = "Process-Policy::Options::%s" % i
+        if key not in cnf:
+            cnf[key] = ""
 
     queue_name = apt_pkg.parse_commandline(cnf.Cnf,Arguments,sys.argv)
 

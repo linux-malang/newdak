@@ -64,7 +64,8 @@ from daklib.regexes import re_no_epoch
 
 filelist = 'filelist.yaml'
 
-def usage (exit_code=0):
+
+def usage(exit_code=0):
     print """Generate changelog between two suites
 
        Usage:
@@ -83,6 +84,7 @@ Options:
   -p, --progress            display progress status"""
 
     sys.exit(exit_code)
+
 
 def get_source_uploads(suite, base_suite, session):
     """
@@ -116,6 +118,7 @@ def get_source_uploads(suite, base_suite, session):
                ORDER BY c.source, c.version DESC"""
 
     return session.execute(query, {'suite': suite, 'base_suite': base_suite})
+
 
 def get_binary_uploads(suite, base_suite, session):
     """
@@ -156,6 +159,7 @@ def get_binary_uploads(suite, base_suite, session):
 
     return session.execute(query, {'suite': suite, 'base_suite': base_suite})
 
+
 def display_changes(uploads, index):
     prev_upload = None
     for upload in uploads:
@@ -163,6 +167,7 @@ def display_changes(uploads, index):
             print
         print upload[index]
         prev_upload = upload[0]
+
 
 def export_files(session, archive, clpool, progress=False):
     """
@@ -186,7 +191,7 @@ def export_files(session, archive, clpool, progress=False):
                ORDER BY s.source, suite"""
 
     for p in session.execute(query, {'archive_id': archive.archive_id}):
-        if not sources.has_key(p[0]):
+        if p[0] not in sources:
             sources[p[0]] = {}
         sources[p[0]][p[1]] = (re_no_epoch.sub('', p[2]), p[3])
 
@@ -197,7 +202,7 @@ def export_files(session, archive, clpool, progress=False):
                 os.makedirs(path)
             if not os.path.exists(os.path.join(path, \
                    '%s_%s_changelog' % (p, sources[p][s][0]))):
-                if not unpack.has_key(os.path.join(pool, sources[p][s][1])):
+                if os.path.join(pool, sources[p][s][1]) not in unpack:
                     unpack[os.path.join(pool, sources[p][s][1])] = (path, set())
                 unpack[os.path.join(pool, sources[p][s][1])][1].add(s)
             else:
@@ -270,6 +275,7 @@ def export_files(session, archive, clpool, progress=False):
     print '  * Unpack errors: %d' % stats['errors']
     print '  * Files available into changelog pool: %d' % stats['files']
 
+
 def generate_export_filelist(clpool):
     clfiles = {}
     for root, dirs, files in os.walk(clpool):
@@ -290,6 +296,7 @@ def generate_export_filelist(clpool):
     with open(os.path.join(clpool, filelist), 'w+') as fd:
         safe_dump(clfiles, fd, default_flow_style=False)
 
+
 def main():
     Cnf = utils.get_conf()
     Arguments = [('h','help','Make-Changelog::Options::Help'),
@@ -301,8 +308,9 @@ def main():
                  ('p','progress','Make-Changelog::Options::progress')]
 
     for i in ['help', 'suite', 'base-suite', 'binnmu', 'export', 'progress']:
-        if not Cnf.has_key('Make-Changelog::Options::%s' % (i)):
-            Cnf['Make-Changelog::Options::%s' % (i)] = ''
+        key = 'Make-Changelog::Options::%s' % i
+        if key not in Cnf:
+            Cnf[key] = ''
 
     apt_pkg.parse_commandline(Cnf, Arguments, sys.argv)
     Options = Cnf.subtree('Make-Changelog::Options')

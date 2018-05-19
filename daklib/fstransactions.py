@@ -17,9 +17,9 @@
 """Transactions for filesystem actions
 """
 
-import errno
 import os
 import shutil
+
 
 class _FilesystemAction(object):
     @property
@@ -32,6 +32,7 @@ class _FilesystemAction(object):
                 raise IOError("Temporary file '{0}' already exists.".format(self.temporary_name))
         except NotImplementedError:
             pass
+
 
 class _FilesystemCopyAction(_FilesystemAction):
     def __init__(self, source, destination, link=True, symlink=False, mode=None):
@@ -77,6 +78,7 @@ class _FilesystemCopyAction(_FilesystemAction):
             os.unlink(self.destination)
             self.need_cleanup = False
 
+
 class _FilesystemUnlinkAction(_FilesystemAction):
     def __init__(self, path):
         self.path = path
@@ -100,6 +102,7 @@ class _FilesystemUnlinkAction(_FilesystemAction):
             os.rename(self.temporary_name, self.path)
             self.need_cleanup = False
 
+
 class _FilesystemCreateAction(_FilesystemAction):
     def __init__(self, path):
         self.path = path
@@ -117,8 +120,10 @@ class _FilesystemCreateAction(_FilesystemAction):
             os.unlink(self.path)
             self.need_cleanup = False
 
+
 class FilesystemTransaction(object):
     """transactions for filesystem actions"""
+
     def __init__(self):
         self.actions = []
 

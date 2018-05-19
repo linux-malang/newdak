@@ -44,7 +44,8 @@ from sqlalchemy.sql import text
 
 ################################################################################
 
-def usage (exit_code=0):
+
+def usage(exit_code=0):
     print """Usage: dak make-maintainers [OPTION] -a ARCHIVE EXTRA_FILE[...]
 Generate an index of packages <=> Maintainers / Uploaders.
 
@@ -57,11 +58,13 @@ Generate an index of packages <=> Maintainers / Uploaders.
 
 ################################################################################
 
+
 def format(package, person):
     '''Return a string nicely formatted for writing to the output file.'''
     return '%-20s %s\n' % (package, person)
 
 ################################################################################
+
 
 def main():
     cnf = Config()
@@ -71,8 +74,9 @@ def main():
                  ('s',"source","Make-Maintainers::Options::Source"),
                  ('p',"print","Make-Maintainers::Options::Print")]
     for i in ["Help", "Source", "Print" ]:
-        if not cnf.has_key("Make-Maintainers::Options::%s" % (i)):
-            cnf["Make-Maintainers::Options::%s" % (i)] = ""
+        key = "Make-Maintainers::Options::%s" % i
+        if key not in cnf:
+            cnf[key] = ""
 
     extra_files = apt_pkg.parse_commandline(cnf.Cnf, Arguments, sys.argv)
     Options = cnf.subtree("Make-Maintainers::Options")

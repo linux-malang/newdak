@@ -26,6 +26,7 @@ from daklib.dbconn import *
 from sqlalchemy import func
 from sqlalchemy.orm import object_session
 
+
 def newer_version(lowersuite_name, highersuite_name, session, include_equal=False):
     '''
     Finds newer versions in lowersuite_name than in highersuite_name. Returns a
@@ -43,7 +44,7 @@ def newer_version(lowersuite_name, highersuite_name, session, include_equal=Fals
     list = []
     for (source, higherversion) in query:
         q = session.query(func.max(DBSource.version)). \
-            filter_by(source = source)
+            filter_by(source=source)
         if include_equal:
             q = q.filter(DBSource.version >= higherversion)
         else:
@@ -55,6 +56,7 @@ def newer_version(lowersuite_name, highersuite_name, session, include_equal=Fals
     list.sort()
     return list
 
+
 def get_package_names(suite):
     '''
     Returns a query that selects all distinct package names from suite ordered
@@ -65,19 +67,22 @@ def get_package_names(suite):
     return session.query(DBBinary.package).with_parent(suite). \
         group_by(DBBinary.package).order_by(DBBinary.package)
 
+
 class NamedSource(object):
     '''
     A source package identified by its name with all of its versions in a
     suite.
     '''
+
     def __init__(self, suite, source):
         self.source = source
-        query = suite.sources.filter_by(source = source). \
+        query = suite.sources.filter_by(source=source). \
             order_by(DBSource.version)
         self.versions = [src.version for src in query]
 
     def __str__(self):
         return "%s(%s)" % (self.source, ", ".join(self.versions))
+
 
 class DejavuBinary(object):
     '''
@@ -96,7 +101,7 @@ class DejavuBinary(object):
         session = object_session(suite)
         # We need a subquery to make sure that both binary and source packages
         # are in the right suite.
-        bin_query = suite.binaries.filter_by(package = package).subquery()
+        bin_query = suite.binaries.filter_by(package=package).subquery()
         src_query = session.query(DBSource.source).with_parent(suite). \
             join(bin_query).order_by(DBSource.source).group_by(DBSource.source)
         self.sources = []
@@ -110,6 +115,7 @@ class DejavuBinary(object):
 
     def __str__(self):
         return "%s built by: %s" % (self.package, ", ".join(self.sources))
+
 
 def report_multiple_source(suite):
     '''

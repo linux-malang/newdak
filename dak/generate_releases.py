@@ -57,7 +57,8 @@ Logger = None                  #: Our logging object
 
 ################################################################################
 
-def usage (exit_code=0):
+
+def usage(exit_code=0):
     """ Usage information"""
 
     print """Usage: dak generate-releases [OPTIONS]
@@ -77,6 +78,7 @@ SUITE can be a space separated list, e.g.
     sys.exit(exit_code)
 
 ########################################################################
+
 
 def sign_release_dir(suite, dirname):
     cnf = Config()
@@ -107,9 +109,11 @@ def sign_release_dir(suite, dirname):
             with open(inlinedest, 'w') as stdout:
                 daklib.gpg.sign(stdin, stdout, inline=True, **args)
 
+
 class XzFile(object):
     def __init__(self, filename, mode='r'):
         self.filename = filename
+
     def read(self):
         cmd = ("xz", "-d")
         with open(self.filename, 'r') as stdin:
@@ -426,7 +430,6 @@ class ReleaseWriter(object):
             for hf in hashes:
                 fileinfo[filename][hf.release_field] = hf.func(contents)
 
-
         for field in sorted(h.release_field for h in hashes):
             out.write('%s:\n' % field)
             for filename in sorted(fileinfo.keys()):
@@ -446,14 +449,15 @@ class ReleaseWriter(object):
         return
 
 
-def main ():
+def main():
     global Logger
 
     cnf = Config()
 
     for i in ["Help", "Suite", "Force", "Quiet"]:
-        if not cnf.has_key("Generate-Releases::Options::%s" % (i)):
-            cnf["Generate-Releases::Options::%s" % (i)] = ""
+        key = "Generate-Releases::Options::%s" % i
+        if key not in cnf:
+            cnf[key] = ""
 
     Arguments = [('h',"help","Generate-Releases::Options::Help"),
                  ('a','archive','Generate-Releases::Options::Archive','HasArg'),
@@ -483,7 +487,7 @@ def main ():
                 print "cannot find suite %s" % s
                 Logger.log(['cannot find suite %s' % s])
     else:
-        query = session.query(Suite).filter(Suite.untouchable == False)
+        query = session.query(Suite).filter(Suite.untouchable == False)  # noqa:E712
         if 'Archive' in Options:
             archive_names = utils.split_args(Options['Archive'])
             query = query.join(Suite.archive).filter(Archive.archive_name.in_(archive_names))
@@ -515,6 +519,7 @@ def main ():
     Logger.close()
 
     sys.exit(retcode)
+
 
 def generate_helper(suite_id):
     '''

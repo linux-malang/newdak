@@ -25,12 +25,12 @@ Helper code for file writing with optional compression.
 
 ################################################################################
 
-from daklib.config import Config
-
 from daklib.daksubprocess import check_call
 
 import errno
-import os, os.path
+import os
+import os.path
+
 
 class CompressionMethod(object):
     def __init__(self, keyword, extension, command):
@@ -47,10 +47,12 @@ _compression_methods = (
     CompressionMethod('none', '', None),
 )
 
+
 class BaseFileWriter(object):
     '''
     Base class for compressed and uncompressed file writing.
     '''
+
     def __init__(self, template, **keywords):
         '''
         The template argument is a string template like
@@ -108,6 +110,7 @@ class BaseFileWriter(object):
         else:
             os.unlink(self.path + '.new')
 
+
 class BinaryContentsFileWriter(BaseFileWriter):
     def __init__(self, **keywords):
         '''
@@ -125,6 +128,7 @@ class BinaryContentsFileWriter(BaseFileWriter):
             template = "%(archive)s/dists/%(suite)s/%(component)s/Contents-udeb-%(architecture)s"
         BaseFileWriter.__init__(self, template, **flags)
 
+
 class SourceContentsFileWriter(BaseFileWriter):
     def __init__(self, **keywords):
         '''
@@ -137,6 +141,7 @@ class SourceContentsFileWriter(BaseFileWriter):
         flags.update(keywords)
         template = "%(archive)s/dists/%(suite)s/%(component)s/Contents-source"
         BaseFileWriter.__init__(self, template, **flags)
+
 
 class PackagesFileWriter(BaseFileWriter):
     def __init__(self, **keywords):
@@ -154,6 +159,7 @@ class PackagesFileWriter(BaseFileWriter):
             template = "%(archive)s/dists/%(suite)s/%(component)s/debian-installer/binary-%(architecture)s/Packages"
         BaseFileWriter.__init__(self, template, **flags)
 
+
 class SourcesFileWriter(BaseFileWriter):
     def __init__(self, **keywords):
         '''
@@ -166,6 +172,7 @@ class SourcesFileWriter(BaseFileWriter):
         flags.update(keywords)
         template = "%(archive)s/dists/%(suite)s/%(component)s/source/Sources"
         BaseFileWriter.__init__(self, template, **flags)
+
 
 class TranslationFileWriter(BaseFileWriter):
     def __init__(self, **keywords):

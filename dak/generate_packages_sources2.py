@@ -28,7 +28,9 @@ Generate Packages/Sources files
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import apt_pkg, sys
+import apt_pkg
+import sys
+
 
 def usage():
     print """Usage: dak generate-packages-sources2 [OPTIONS]
@@ -101,6 +103,7 @@ LEFT JOIN suite on suite.id = :suite
 ORDER BY
 s.source, s.version
 """
+
 
 def generate_sources(suite_id, component_id):
     global _sources_query
@@ -231,6 +234,7 @@ WHERE
 ORDER BY tmp.source, tmp.package, tmp.version
 """
 
+
 def generate_packages(suite_id, component_id, architecture_id, type_name):
     global _packages_query
     from daklib.filewriter import PackagesFileWriter
@@ -316,6 +320,7 @@ GROUP BY b.package, bm_description_md5.value, bm_description.value
 ORDER BY MIN(s.source), b.package, bm_description_md5.value
 """
 
+
 def generate_translations(suite_id, component_id):
     global _translations_query
     from daklib.filewriter import TranslationFileWriter
@@ -349,6 +354,7 @@ def generate_translations(suite_id, component_id):
 
 #############################################################################
 
+
 def main():
     from daklib.config import Config
     from daklib import daklog
@@ -367,7 +373,7 @@ def main():
     except KeyError:
         Options = {}
 
-    if Options.has_key("Help"):
+    if "Help" in Options:
         usage()
 
     from daklib.dakmultiprocessing import DakProcessPool, PROC_STATUS_SUCCESS, PROC_STATUS_SIGNALRAISED
@@ -382,7 +388,7 @@ def main():
 
     import daklib.utils
 
-    if Options.has_key("Suite"):
+    if "Suite" in Options:
         suites = []
         suite_names = daklib.utils.split_args(Options['Suite'])
         for s in suite_names:
@@ -393,14 +399,13 @@ def main():
                 print "I: Cannot find suite %s" % s
                 logger.log(['Cannot find suite %s' % s])
     else:
-        query = session.query(Suite).filter(Suite.untouchable == False)
+        query = session.query(Suite).filter(Suite.untouchable == False)  # noqa:E712
         if 'Archive' in Options:
             archive_names = daklib.utils.split_args(Options['Archive'])
             query = query.join(Suite.archive).filter(Archive.archive_name.in_(archive_names))
         suites = query.all()
 
-    force = Options.has_key("Force") and Options["Force"]
-
+    force = "Force" in Options and Options["Force"]
 
     def parse_results(message):
         # Split out into (code, msg)

@@ -8,6 +8,7 @@ from multiprocessing import Pool
 from time import sleep
 import unittest
 
+
 def read_number():
     session = DBConn().session()
     result = session.query('foo').from_statement('select 7 as foo').scalar()
@@ -15,7 +16,9 @@ def read_number():
     session.close()
     return result
 
+
 class MultiProcTestCase(DBDakTestCase):
+
     """
     This TestCase checks that DBConn works with multiprocessing.
     """
@@ -29,11 +32,11 @@ class MultiProcTestCase(DBDakTestCase):
         '''
         self.result = 0
         pool = Pool()
-        pool.apply_async(read_number, (), callback = self.save_result)
-        pool.apply_async(read_number, (), callback = self.save_result)
-        pool.apply_async(read_number, (), callback = self.save_result)
-        pool.apply_async(read_number, (), callback = self.save_result)
-        pool.apply_async(read_number, (), callback = self.save_result)
+        pool.apply_async(read_number, (), callback=self.save_result)
+        pool.apply_async(read_number, (), callback=self.save_result)
+        pool.apply_async(read_number, (), callback=self.save_result)
+        pool.apply_async(read_number, (), callback=self.save_result)
+        pool.apply_async(read_number, (), callback=self.save_result)
         pool.close()
         pool.join()
         self.assertEqual(5 * 7, self.result)

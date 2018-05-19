@@ -33,7 +33,11 @@
 
 ################################################################################
 
-import os, os.path, stat, sys, time
+import os
+import os.path
+import stat
+import sys
+import time
 from datetime import datetime, timedelta
 import apt_pkg
 from daklib import utils
@@ -49,7 +53,8 @@ delete_date = None
 
 ################################################################################
 
-def usage (exit_code=0):
+
+def usage(exit_code=0):
     print """Usage: dak clean-queues [OPTIONS]
 Clean out incoming directories.
 
@@ -63,7 +68,8 @@ Clean out incoming directories.
 
 ################################################################################
 
-def init (cnf):
+
+def init(cnf):
     global delete_date, del_dir
 
     # Used for directory naming
@@ -102,7 +108,9 @@ def init (cnf):
         utils.fubar("Cannot chdir to %s" % incoming)
 
 # Remove a file to the morgue
-def remove (from_dir, f):
+
+
+def remove(from_dir, f):
     fname = os.path.basename(f)
     if os.access(f, os.R_OK):
         Logger.log(["move file to morgue", from_dir, fname, del_dir])
@@ -124,7 +132,9 @@ def remove (from_dir, f):
 # Removes any old files.
 # [Used for Incoming/REJECT]
 #
-def flush_old ():
+
+
+def flush_old():
     Logger.log(["check Incoming/REJECT for old files", os.getcwd()])
     for f in os.listdir('.'):
         if os.path.isfile(f):
@@ -137,7 +147,9 @@ def flush_old ():
 # Removes any files which are old orphans (not associated with a valid .changes file).
 # [Used for Incoming]
 #
-def flush_orphans ():
+
+
+def flush_orphans():
     all_files = {}
     changes_files = []
 
@@ -173,7 +185,7 @@ def flush_orphans ():
         for i in (files.keys(), dsc_files.keys(), [changes_filename]):
             keys.extend(i)
         for key in keys:
-            if all_files.has_key(key):
+            if key in all_files:
                 if Options["Verbose"]:
                     print "Skipping, has parents, '%s'." % (key)
                 del all_files[key]
@@ -189,15 +201,17 @@ def flush_orphans ():
 
 ################################################################################
 
-def main ():
+
+def main():
     global Options, Logger
 
     cnf = Config()
 
     for i in ["Help", "Incoming", "No-Action", "Verbose" ]:
-        if not cnf.has_key("Clean-Queues::Options::%s" % (i)):
-            cnf["Clean-Queues::Options::%s" % (i)] = ""
-    if not cnf.has_key("Clean-Queues::Options::Days"):
+        key = "Clean-Queues::Options::%s" % i
+        if key not in cnf:
+            cnf[key] = ""
+    if "Clean-Queues::Options::Days" not in cnf:
         cnf["Clean-Queues::Options::Days"] = "14"
 
     Arguments = [('h',"help","Clean-Queues::Options::Help"),

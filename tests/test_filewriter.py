@@ -16,10 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import apt_pkg
-import unittest
 import tempfile
-import os
 import shutil
 from base_test import DakTestCase
 
@@ -34,8 +31,8 @@ COMPONENT='main'
 ARCH='amd64'
 LANG='en'
 
-class FileWriterTest(DakTestCase):
 
+class FileWriterTest(DakTestCase):
 
     def test_writer_test(self):
         tmpdir = tempfile.mkdtemp()

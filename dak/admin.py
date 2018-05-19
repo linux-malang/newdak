@@ -36,16 +36,21 @@ dispatch = {}
 dryrun = False
 
 ################################################################################
+
+
 def warn(msg):
     print >> sys.stderr, msg
+
 
 def die(msg, exit_code=1):
     print >> sys.stderr, msg
     sys.exit(exit_code)
 
+
 def die_arglen(args, args_needed, msg):
     if len(args) < args_needed:
         die(msg)
+
 
 def usage(exit_code=0):
     """Perform administrative work on the dak database."""
@@ -139,7 +144,7 @@ Perform administrative work on the dak database.
      v-c rm SUITE CHECK REFERENCE    remove a version check
        where
          CHECK     is one of Enhances, MustBeNewerThan, MustBeOlderThan
-	 REFERENCE is another suite name
+         REFERENCE is another suite name
 
   change-component:
      change-component SUITE COMPONENT source SOURCE...
@@ -153,13 +158,16 @@ Perform administrative work on the dak database.
 
 ################################################################################
 
+
 def __architecture_list(d, args):
     q = d.session().query(Architecture).order_by(Architecture.arch_string)
     for j in q.all():
         # HACK: We should get rid of source from the arch table
-        if j.arch_string == 'source': continue
+        if j.arch_string == 'source':
+            continue
         print j.arch_string
     sys.exit(0)
+
 
 def __architecture_add(d, args):
     die_arglen(args, 4, "E: adding an architecture requires a name and a description")
@@ -187,6 +195,7 @@ def __architecture_add(d, args):
             die("E: Error adding architecture %s (%s)" % (args[2], e))
     print "Architecture %s added" % (args[2])
 
+
 def __architecture_rm(d, args):
     die_arglen(args, 3, "E: removing an architecture requires at least a name")
     print "Removing architecture %s" % args[2]
@@ -203,6 +212,7 @@ def __architecture_rm(d, args):
         except SQLAlchemyError as e:
             die("E: Error removing architecture %s (%s)" % (args[2], e))
     print "Architecture %s removed" % args[2]
+
 
 def architecture(command):
     args = [str(x) for x in command]
@@ -226,10 +236,12 @@ dispatch['a'] = architecture
 
 ################################################################################
 
+
 def component_list():
     session = DBConn().session()
     for component in session.query(Component).order_by(Component.component_name):
         print "{0} ordering={1}".format(component.component_name, component.ordering)
+
 
 def component_add(args):
     (name, description, ordering) = args[0:3]
@@ -258,6 +270,7 @@ def component_add(args):
     else:
         session.commit()
 
+
 def component_rm(name):
     session = DBConn().session()
     component = get_component(name, session)
@@ -269,6 +282,7 @@ def component_rm(name):
     else:
         session.commit()
 
+
 def component_rename(oldname, newname):
     session = DBConn().session()
     component = get_component(oldname, session)
@@ -279,6 +293,7 @@ def component_rename(oldname, newname):
         session.rollback()
     else:
         session.commit()
+
 
 def component(command):
     mode = command[1]
@@ -297,6 +312,7 @@ dispatch['component'] = component
 
 ################################################################################
 
+
 def __suite_list(d, args):
     s = d.session()
     for j in s.query(Suite).join(Suite.archive).order_by(Archive.archive_name, Suite.suite_name).all():
@@ -304,6 +320,7 @@ def __suite_list(d, args):
             print "{0} {1}".format(j.archive.archive_name, j.suite_name)
         else:
             print "{0}".format(j.suite_name)
+
 
 def __suite_show(d, args):
     if len(args) < 2:
@@ -315,6 +332,7 @@ def __suite_show(d, args):
         die("E: can't find suite entry for %s" % (args[2].lower()))
 
     print su.details()
+
 
 def __suite_add(d, args, addallarches=False):
     die_arglen(args, 4, "E: adding a suite requires at least a name and a version")
@@ -371,6 +389,7 @@ def __suite_add(d, args, addallarches=False):
 
     s.commit()
 
+
 def __suite_rm(d, args):
     die_arglen(args, 3, "E: removing a suite requires at least a name")
     name = args[2]
@@ -388,6 +407,7 @@ def __suite_rm(d, args):
         except SQLAlchemyError as e:
             die("E: Error removing suite {0} ({1})".format(name, e))
     print "Suite {0} removed".format(name)
+
 
 def __suite_add_build_queue(d, args):
     session = d.session()
@@ -443,6 +463,7 @@ def __suite_add_build_queue(d, args):
 
     session.commit()
 
+
 def suite(command):
     args = [str(x) for x in command]
     Cnf = utils.get_conf()
@@ -472,19 +493,21 @@ dispatch['s'] = suite
 
 ################################################################################
 
+
 def __suite_architecture_list(d, args):
     s = d.session()
     for j in s.query(Suite).order_by(Suite.suite_name):
-        architectures = j.get_architectures(skipsrc = True, skipall = True)
+        architectures = j.get_architectures(skipsrc=True, skipall=True)
         print j.suite_name + ': ' + \
               ', '.join([a.arch_string for a in architectures])
+
 
 def __suite_architecture_listarch(d, args):
     die_arglen(args, 3, "E: suite-architecture list-arch requires a suite")
     suite = get_suite(args[2].lower(), d.session())
     if suite is None:
         die('E: suite %s is invalid' % args[2].lower())
-    a = suite.get_architectures(skipsrc = True, skipall = True)
+    a = suite.get_architectures(skipsrc=True, skipall=True)
     for j in a:
         print j.arch_string
 
@@ -505,11 +528,13 @@ def __suite_architecture_add(d, args):
     s = d.session()
 
     suite = get_suite(args[2].lower(), s)
-    if suite is None: die("E: Can't find suite %s" % args[2].lower())
+    if suite is None:
+        die("E: Can't find suite %s" % args[2].lower())
 
     for arch_name in args[3:]:
         arch = get_architecture(arch_name.lower(), s)
-        if arch is None: die("E: Can't find architecture %s" % args[3].lower())
+        if arch is None:
+            die("E: Can't find architecture %s" % args[3].lower())
 
         try:
             suite.architectures.append(arch)
@@ -525,6 +550,7 @@ def __suite_architecture_add(d, args):
         s.commit()
 
     s.close()
+
 
 def __suite_architecture_rm(d, args):
     if len(args) < 3:
@@ -578,6 +604,7 @@ dispatch['s-a'] = suite_architecture
 
 ################################################################################
 
+
 def __suite_component_list(d, args):
     s = d.session()
     for j in s.query(Suite).order_by(Suite.suite_name):
@@ -587,73 +614,76 @@ def __suite_component_list(d, args):
 
 
 def __suite_component_listcomponent(d, args):
-     die_arglen(args, 3, "E: suite-component list-component requires a suite")
-     suite = get_suite(args[2].lower(), d.session())
-     if suite is None:
-         die('E: suite %s is invalid' % args[2].lower())
-     for c in suite.components:
-         print c.component_name
+    die_arglen(args, 3, "E: suite-component list-component requires a suite")
+    suite = get_suite(args[2].lower(), d.session())
+    if suite is None:
+        die('E: suite %s is invalid' % args[2].lower())
+    for c in suite.components:
+        print c.component_name
 
 
 def __suite_component_listsuite(d, args):
-     die_arglen(args, 3, "E: suite-component list-suite requires an component")
-     component = get_component(args[2].lower(), d.session())
-     if component is None:
-         die("E: component %s is invalid" % args[2].lower())
-     for s in component.suites:
-         print s.suite_name
+    die_arglen(args, 3, "E: suite-component list-suite requires an component")
+    component = get_component(args[2].lower(), d.session())
+    if component is None:
+        die("E: component %s is invalid" % args[2].lower())
+    for s in component.suites:
+        print s.suite_name
 
 
 def __suite_component_add(d, args):
-     if len(args) < 3:
-         die("E: adding a suite-component entry requires a suite and component")
+    if len(args) < 3:
+        die("E: adding a suite-component entry requires a suite and component")
 
-     s = d.session()
+    s = d.session()
 
-     suite = get_suite(args[2].lower(), s)
-     if suite is None: die("E: Can't find suite %s" % args[2].lower())
+    suite = get_suite(args[2].lower(), s)
+    if suite is None:
+        die("E: Can't find suite %s" % args[2].lower())
 
-     for component_name in args[3:]:
-         component = get_component(component_name.lower(), s)
-         if component is None: die("E: Can't find component %s" % args[3].lower())
+    for component_name in args[3:]:
+        component = get_component(component_name.lower(), s)
+        if component is None:
+            die("E: Can't find component %s" % args[3].lower())
 
-         try:
-             suite.components.append(component)
-             s.flush()
-         except IntegrityError as e:
-             die("E: Can't add suite-component entry (%s, %s) - probably already exists" % (args[2].lower(), component_name))
-         except SQLAlchemyError as e:
-             die("E: Can't add suite-component entry (%s, %s) - %s" % (args[2].lower(), component_name, e))
+        try:
+            suite.components.append(component)
+            s.flush()
+        except IntegrityError as e:
+            die("E: Can't add suite-component entry (%s, %s) - probably already exists" % (args[2].lower(), component_name))
+        except SQLAlchemyError as e:
+            die("E: Can't add suite-component entry (%s, %s) - %s" % (args[2].lower(), component_name, e))
 
-         print "Added suite-component entry for %s, %s" % (args[2].lower(), component_name)
+        print "Added suite-component entry for %s, %s" % (args[2].lower(), component_name)
 
-     if not dryrun:
-         s.commit()
-     s.close()
+    if not dryrun:
+        s.commit()
+    s.close()
+
 
 def __suite_component_rm(d, args):
-     if len(args) < 3:
-         die("E: removing an suite-component entry requires a suite and component")
+    if len(args) < 3:
+        die("E: removing an suite-component entry requires a suite and component")
 
-     s = d.session()
-     if not dryrun:
-         try:
-             suite_name = args[2].lower()
-             suite = get_suite(suite_name, s)
-             if suite is None:
-                 die('E: no such suite %s' % suite_name)
-             component_string = args[3].lower()
-             component = get_component(arch_string, s)
-             if component not in suite.components:
-                 die("E: component %s not found in suite %s" % (component_string, suite_name))
-             suite.components.remove(component)
-             s.commit()
-         except IntegrityError as e:
-             die("E: Can't remove suite-component entry (%s, %s) - it's probably referenced" % (args[2].lower(), args[3].lower()))
-         except SQLAlchemyError as e:
-             die("E: Can't remove suite-component entry (%s, %s) - %s" % (args[2].lower(), args[3].lower(), e))
+    s = d.session()
+    if not dryrun:
+        try:
+            suite_name = args[2].lower()
+            suite = get_suite(suite_name, s)
+            if suite is None:
+                die('E: no such suite %s' % suite_name)
+            component_string = args[3].lower()
+            component = get_component(arch_string, s)
+            if component not in suite.components:
+                die("E: component %s not found in suite %s" % (component_string, suite_name))
+            suite.components.remove(component)
+            s.commit()
+        except IntegrityError as e:
+            die("E: Can't remove suite-component entry (%s, %s) - it's probably referenced" % (args[2].lower(), args[3].lower()))
+        except SQLAlchemyError as e:
+            die("E: Can't remove suite-component entry (%s, %s) - %s" % (args[2].lower(), args[3].lower(), e))
 
-     print "Removed suite-component entry for %s, %s" % (args[2].lower(), args[3].lower())
+    print "Removed suite-component entry for %s, %s" % (args[2].lower(), args[3].lower())
 
 
 def suite_component(command):
@@ -683,10 +713,12 @@ dispatch['s-c'] = suite_component
 
 ################################################################################
 
+
 def archive_list():
     session = DBConn().session()
     for archive in session.query(Archive).order_by(Archive.archive_name):
         print "{0} path={1} description={2} tainted={3}".format(archive.archive_name, archive.path, archive.description, archive.tainted)
+
 
 def archive_add(args):
     (name, path, description) = args[0:3]
@@ -715,6 +747,7 @@ def archive_add(args):
     else:
         session.commit()
 
+
 def archive_rm(name):
     session = DBConn().session()
     archive = get_archive(name, session)
@@ -726,6 +759,7 @@ def archive_rm(name):
     else:
         session.commit()
 
+
 def archive_rename(oldname, newname):
     session = DBConn().session()
     archive = get_archive(oldname, session)
@@ -736,6 +770,7 @@ def archive_rename(oldname, newname):
         session.rollback()
     else:
         session.commit()
+
 
 def archive(command):
     mode = command[1]
@@ -754,15 +789,18 @@ dispatch['archive'] = archive
 
 ################################################################################
 
+
 def __version_check_list(d):
     session = d.session()
     for s in session.query(Suite).order_by(Suite.suite_name):
         __version_check_list_suite(d, s.suite_name)
 
+
 def __version_check_list_suite(d, suite_name):
     vcs = get_version_checks(suite_name)
     for vc in vcs:
         print "%s %s %s" % (suite_name, vc.check, vc.reference.suite_name)
+
 
 def __version_check_add(d, suite_name, check, reference_name):
     suite = get_suite(suite_name)
@@ -780,6 +818,7 @@ def __version_check_add(d, suite_name, check, reference_name):
     session.add(vc)
     session.commit()
 
+
 def __version_check_rm(d, suite_name, check, reference_name):
     suite = get_suite(suite_name)
     if not suite:
@@ -790,11 +829,12 @@ def __version_check_rm(d, suite_name, check, reference_name):
 
     session = d.session()
     try:
-      vc = session.query(VersionCheck).filter_by(suite=suite, check=check, reference=reference).one()
-      session.delete(vc)
-      session.commit()
+        vc = session.query(VersionCheck).filter_by(suite=suite, check=check, reference=reference).one()
+        session.delete(vc)
+        session.commit()
     except NoResultFound:
-      print "W: version-check not found."
+        print "W: version-check not found."
+
 
 def version_check(command):
     args = [str(x) for x in command]
@@ -826,6 +866,7 @@ dispatch['v-c'] = version_check
 
 ################################################################################
 
+
 def show_config(command):
     args = [str(x) for x in command]
     cnf = utils.get_conf()
@@ -836,13 +877,13 @@ def show_config(command):
 
     if mode == 'db':
         connstr = ""
-        if cnf.has_key("DB::Service"):
+        if "DB::Service" in cnf:
             # Service mode
             connstr = "postgresql://service=%s" % cnf["DB::Service"]
-        elif cnf.has_key("DB::Host"):
+        elif "DB::Host" in cnf:
             # TCP/IP
             connstr = "postgres://%s" % cnf["DB::Host"]
-            if cnf.has_key("DB::Port") and cnf["DB::Port"] != "-1":
+            if "DB::Port" in cnf and cnf["DB::Port"] != "-1":
                 connstr += ":%s" % cnf["DB::Port"]
             connstr += "/%s" % cnf["DB::Name"]
         else:
@@ -853,16 +894,16 @@ def show_config(command):
         print connstr
     elif mode == 'db-shell':
         e = []
-        if cnf.has_key("DB::Service"):
+        if "DB::Service" in cnf:
             e.append('PGSERVICE')
             print "PGSERVICE=%s" % cnf["DB::Service"]
-        if cnf.has_key("DB::Name"):
+        if "DB::Name" in cnf:
             e.append('PGDATABASE')
             print "PGDATABASE=%s" % cnf["DB::Name"]
-        if cnf.has_key("DB::Host"):
+        if "DB::Host" in cnf:
             print "PGHOST=%s" % cnf["DB::Host"]
             e.append('PGHOST')
-        if cnf.has_key("DB::Port") and cnf["DB::Port"] != "-1":
+        if "DB::Port" in cnf and cnf["DB::Port"] != "-1":
             print "PGPORT=%s" % cnf["DB::Port"]
             e.append('PGPORT')
         print "export " + " ".join(e)
@@ -871,7 +912,7 @@ def show_config(command):
     else:
         session = DBConn().session()
         try:
-            o = session.query(DBConfig).filter_by(name = mode).one()
+            o = session.query(DBConfig).filter_by(name=mode).one()
             print o.value
         except NoResultFound:
             print "W: option '%s' not set" % mode
@@ -880,6 +921,7 @@ dispatch['config'] = show_config
 dispatch['c'] = show_config
 
 ################################################################################
+
 
 def show_keyring(command):
     args = [str(x) for x in command]
@@ -891,19 +933,20 @@ def show_keyring(command):
 
     d = DBConn()
 
-    q = d.session().query(Keyring).filter(Keyring.active == True)
+    q = d.session().query(Keyring).filter(Keyring.active == True)  # noqa:E712
 
     if mode == 'list-all':
         pass
     elif mode == 'list-binary':
-        q = q.join(Keyring.acl).filter(ACL.allow_source == False)
+        q = q.join(Keyring.acl).filter(ACL.allow_source == False)  # noqa:E712
     elif mode == 'list-source':
-        q = q.join(Keyring.acl).filter(ACL.allow_source == True)
+        q = q.join(Keyring.acl).filter(ACL.allow_source == True)  # noqa:E712
     else:
         die("E: keyring command unknown")
 
     for k in q.all():
         print k.keyring_name
+
 
 def keyring_add_buildd(command):
     name = command[2]
@@ -929,6 +972,7 @@ def keyring_add_buildd(command):
 
     session.commit()
 
+
 def keyring(command):
     if command[1].startswith('list-'):
         show_keyring(command)
@@ -941,6 +985,7 @@ dispatch['keyring'] = keyring
 dispatch['k'] = keyring
 
 ################################################################################
+
 
 def change_component_source(transaction, suite, component, source_names):
     session = transaction.session
@@ -956,6 +1001,7 @@ def change_component_source(transaction, suite, component, source_names):
         print "Copying {0}={1}".format(source.source, source.version)
         transaction.copy_source(source, suite, component)
 
+
 def change_component_binary(transaction, suite, component, binary_names):
     session = transaction.session
 
@@ -970,6 +1016,7 @@ def change_component_binary(transaction, suite, component, binary_names):
         print "Copying {0}={1} [{2}]".format(binary.package, binary.version, binary.architecture.arch_string)
         transaction.copy_binary(binary, suite, component)
     pass
+
 
 def change_component(args):
     with daklib.archive.ArchiveTransaction() as transaction:
@@ -991,6 +1038,7 @@ dispatch['change-component'] = change_component
 
 ################################################################################
 
+
 def forget_signature(args):
     filename = args[1]
     with open(filename, 'r') as fh:
@@ -1011,6 +1059,7 @@ dispatch['forget-signature'] = forget_signature
 
 ################################################################################
 
+
 def main():
     """Perform administrative work on the dak database"""
     global dryrun
@@ -1018,8 +1067,9 @@ def main():
     arguments = [('h', "help", "Admin::Options::Help"),
                  ('n', "dry-run", "Admin::Options::Dry-Run")]
     for i in [ "help", "dry-run" ]:
-        if not Cnf.has_key("Admin::Options::%s" % (i)):
-            Cnf["Admin::Options::%s" % (i)] = ""
+        key = "Admin::Options::%s" % i
+        if key not in Cnf:
+            Cnf[key] = ""
 
     arguments = apt_pkg.parse_commandline(Cnf, arguments, sys.argv)
 

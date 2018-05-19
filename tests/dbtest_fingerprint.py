@@ -8,7 +8,9 @@ from daklib.dak_exceptions import DBUpdateError
 from sqlalchemy.exc import IntegrityError
 import unittest
 
+
 class FingerprintTestCase(DBDakTestCase):
+
     """
     The FingerprintTestCase tests the relation between Fingerprint and Uid
     objects.
@@ -25,12 +27,12 @@ class FingerprintTestCase(DBDakTestCase):
     """
 
     def test_relation(self):
-        fingerprint = Fingerprint(fingerprint = 'deadbeefdeadbeef')
+        fingerprint = Fingerprint(fingerprint='deadbeefdeadbeef')
         self.session.add(fingerprint)
         query = self.session.query(Fingerprint)
         self.assertEqual(1, query.count())
         self.assertEqual('deadbeefdeadbeef', query.one().fingerprint)
-        fingerprint.uid = Uid(uid = 'ftp-master@debian.org', name = 'ftpteam')
+        fingerprint.uid = Uid(uid='ftp-master@debian.org', name='ftpteam')
         uid = self.session.query(Uid).one()
         self.assertEqual('ftp-master@debian.org', uid.uid)
         self.assertEqual('ftpteam', uid.name)
@@ -42,25 +44,26 @@ class FingerprintTestCase(DBDakTestCase):
         self.session.flush()
 
     def fingerprint_duplicate_fingerprint(self):
-        self.session.add(Fingerprint(fingerprint = 'affe0815'))
-        self.session.add(Fingerprint(fingerprint = 'affe0815'))
+        self.session.add(Fingerprint(fingerprint='affe0815'))
+        self.session.add(Fingerprint(fingerprint='affe0815'))
         self.session.flush()
 
     def uid_no_uid(self):
-        self.session.add(Uid(name = 'foobar'))
+        self.session.add(Uid(name='foobar'))
         self.session.flush()
 
     def uid_duplicate_uid(self):
-        self.session.add(Uid(uid = 'duplicate'))
-        self.session.add(Uid(uid = 'duplicate'))
+        self.session.add(Uid(uid='duplicate'))
+        self.session.add(Uid(uid='duplicate'))
         self.session.flush()
 
     def test_exceptions(self):
-        self.assertRaises(DBUpdateError, self.fingerprint_no_fingerprint)
+        self.assertRaises(IntegrityError, self.fingerprint_no_fingerprint)
         self.session.rollback()
-        self.assertRaises(IntegrityError, self.fingerprint_duplicate_fingerprint)
+        self.assertRaises(
+            IntegrityError, self.fingerprint_duplicate_fingerprint)
         self.session.rollback()
-        self.assertRaises(DBUpdateError, self.uid_no_uid)
+        self.assertRaises(IntegrityError, self.uid_no_uid)
         self.session.rollback()
         self.assertRaises(IntegrityError, self.uid_duplicate_uid)
         self.session.rollback()

@@ -51,6 +51,8 @@ Options = None  #: Parsed CommandLine arguments
 #####################################
 #### This may run within sudo !! ####
 #####################################
+
+
 def init():
     """
     Initialize. Sets up database connection, parses commandline arguments.
@@ -73,8 +75,9 @@ def init():
                  ('n',"no-action","Edit-Transitions::Options::No-Action")]
 
     for i in ["automatic", "help", "no-action", "edit", "import", "check", "sudo"]:
-        if not Cnf.has_key("Edit-Transitions::Options::%s" % (i)):
-            Cnf["Edit-Transitions::Options::%s" % (i)] = ""
+        key = "Edit-Transitions::Options::%s" % i
+        if key not in Cnf:
+            Cnf[key] = ""
 
     apt_pkg.parse_commandline(Cnf, Arguments, sys.argv)
 
@@ -93,7 +96,8 @@ def init():
 
 ################################################################################
 
-def usage (exit_code=0):
+
+def usage(exit_code=0):
     print """Usage: transitions [OPTION]...
 Update and check the release managers transition file.
 
@@ -114,6 +118,8 @@ Options:
 #####################################
 #### This may run within sudo !! ####
 #####################################
+
+
 def load_transitions(trans_file):
     """
     Parse a transition yaml file and check it for validity.
@@ -202,7 +208,6 @@ def load_transitions(trans_file):
         print "ERROR: Unable to parse the file"
         failure = True
 
-
     if failure:
         return None
 
@@ -213,6 +218,8 @@ def load_transitions(trans_file):
 #####################################
 #### This may run within sudo !! ####
 #####################################
+
+
 def lock_file(f):
     """
     Lock a file
@@ -240,6 +247,8 @@ def lock_file(f):
 #####################################
 #### This may run within sudo !! ####
 #####################################
+
+
 def write_transitions(from_trans):
     """
     Update the active transitions file safely.
@@ -274,6 +283,8 @@ def write_transitions(from_trans):
 ##########################################
 #### This usually runs within sudo !! ####
 ##########################################
+
+
 def write_transitions_from_file(from_file):
     """
     We have a file we think is valid; if we're using sudo, we invoke it
@@ -302,6 +313,7 @@ def write_transitions_from_file(from_file):
 
 ################################################################################
 
+
 def temp_transitions_file(transitions):
     """
     Open a temporary file and dump the current transitions into it, so users
@@ -326,6 +338,7 @@ def temp_transitions_file(transitions):
 
 ################################################################################
 
+
 def edit_transitions():
     """ Edit the defined transitions. """
     trans_file = Cnf["Dinstall::ReleaseTransitions"]
@@ -342,7 +355,7 @@ def edit_transitions():
         # Now try to load the new file
         test = load_transitions(edit_file)
 
-        if test == None:
+        if test is None:
             # Edit is broken
             print "Edit was unparsable."
             prompt = "[E]dit again, Drop changes?"
@@ -383,6 +396,7 @@ def edit_transitions():
     print "Transitions file updated."
 
 ################################################################################
+
 
 def check_transitions(transitions):
     """
@@ -465,7 +479,7 @@ def check_transitions(transitions):
                 print "Sending notification to %s" % subst['__TRANSITION_EMAIL__']
                 subst['__DAK_ADDRESS__'] = Cnf["Dinstall::MyEmailAddress"]
                 subst['__BCC__'] = 'X-DAK: dak transitions'
-                if Cnf.has_key("Dinstall::Bcc"):
+                if "Dinstall::Bcc" in Cnf:
                     subst["__BCC__"] += '\nBcc: %s' % Cnf["Dinstall::Bcc"]
                 message = utils.TemplateSubst(subst,
                                               os.path.join(Cnf["Dir::Templates"], 'transition.removed'))
@@ -480,6 +494,7 @@ def check_transitions(transitions):
             sys.exit(0)
 
 ################################################################################
+
 
 def get_info(trans, source, expected, rm, reason, packages):
     """
@@ -513,6 +528,7 @@ Blocked Packages (total: %d): %s
 """ % (trans, source, expected, rm, reason, len(packages), ", ".join(packages))
 
 ################################################################################
+
 
 def transition_info(transitions):
     """
@@ -552,6 +568,7 @@ def transition_info(transitions):
         print "-------------------------------------------------------------------------"
 
 ################################################################################
+
 
 def main():
     """
@@ -599,7 +616,7 @@ def main():
 
     # Parse the yaml file
     transitions = load_transitions(transpath)
-    if transitions == None:
+    if transitions is None:
         # Something very broken with the transitions, exit
         utils.warn("Could not parse existing transitions file. Aborting.")
         sys.exit(2)

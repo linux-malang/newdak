@@ -33,7 +33,6 @@ Display information about package(s) (suite, version, etc.)
 
 from __future__ import print_function
 
-import os
 import sys
 import apt_pkg
 
@@ -43,7 +42,8 @@ from daklib import utils
 
 ################################################################################
 
-def usage (exit_code=0):
+
+def usage(exit_code=0):
     print("""Usage: dak ls [OPTION] PACKAGE[...]
 Display information about PACKAGE(s).
 
@@ -64,7 +64,8 @@ ARCH, COMPONENT and SUITE can be comma (or space) separated lists, e.g.
 
 ################################################################################
 
-def main ():
+
+def main():
     cnf = Config()
 
     Arguments = [('a', "architecture", "Ls::Options::Architecture", "HasArg"),
@@ -80,8 +81,9 @@ def main ():
     for i in [ "architecture", "binarytype", "component", "format",
                "greaterorequal", "greaterthan", "regex", "suite",
                "source-and-binary", "help" ]:
-        if not cnf.has_key("Ls::Options::%s" % (i)):
-            cnf["Ls::Options::%s" % (i)] = ""
+        key = "Ls::Options::%s" % i
+        if key not in cnf:
+            cnf[key] = ""
 
     packages = apt_pkg.parse_commandline(cnf.Cnf, Arguments, sys.argv)
     Options = cnf.subtree("Ls::Options")

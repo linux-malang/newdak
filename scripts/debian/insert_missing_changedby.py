@@ -32,7 +32,12 @@
 
 ###############################################################################
 
-import errno, fcntl, os, sys, time, re
+import errno
+import fcntl
+import os
+import sys
+import time
+import re
 import apt_pkg
 import daklib.database
 import daklib.queue
@@ -49,10 +54,11 @@ maintainer_id_cache={}
 
 ###############################################################################
 
-def get_or_set_maintainer_id (maintainer):
+
+def get_or_set_maintainer_id(maintainer):
     global maintainer_id_cache
 
-    if maintainer_id_cache.has_key(maintainer):
+    if maintainer in maintainer_id_cache:
         return maintainer_id_cache[maintainer]
 
     if isinstance(maintainer, basestring):
@@ -85,7 +91,8 @@ def __get_changedby__(package, version):
     cur.close()
     return res
 
-def insert ():
+
+def insert():
     print "Adding missing changedby fields."
 
     listcursor = projectBdb.cursor()

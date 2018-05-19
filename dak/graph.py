@@ -35,6 +35,7 @@ default_names = ["byhand", "new", "deferred"]
 
 ################################################################################
 
+
 def usage(exit_code=0):
     print """Usage: dak graph
 Graphs the number of packages in queue directories (usually new and byhand).
@@ -50,11 +51,13 @@ Graphs the number of packages in queue directories (usually new and byhand).
 
 ################################################################################
 
+
 def graph(*args):
     if args[2] == "deferred":
         graph_deferred(*args)
     else:
         graph_normal(*args)
+
 
 def deferred_colours():
     colours = [0]*16
@@ -64,6 +67,7 @@ def deferred_colours():
     return colours
 
 colours = deferred_colours()
+
 
 def graph_deferred(rrd_dir, image_dir, name, extra_args, graph, title, start, year_lines=False):
     image_file = os.path.join(image_dir, "%s-%s.png" % (name, graph))
@@ -107,6 +111,7 @@ GPRINT:avgd%i:avg\\: %%.0lf\\j
         ret = rrdtool.graph(*rrd_args)
     except rrdtool.error as e:
         print('warning: graph: rrdtool error, skipping %s-%s.png: %s' % (name, graph, e))
+
 
 def graph_normal(rrd_dir, image_dir, name, extra_args, graph, title, start, year_lines=False):
     image_file = os.path.join(image_dir, "%s-%s.png" % (name, graph))
@@ -162,6 +167,7 @@ GPRINT:avgds0:avg\\: %%.0lf\\j
 
 ################################################################################
 
+
 def main():
     global Cnf
 
@@ -172,8 +178,9 @@ def main():
                  ('i',"images","Graph::Options::Images", "HasArg"),
                  ('n',"names","Graph::Options::Names", "HasArg")]
     for i in [ "help" ]:
-        if not Cnf.has_key("Graph::Options::%s" % (i)):
-            Cnf["Graph::Options::%s" % (i)] = ""
+        key = "Graph::Options::%s" % i
+        if key not in Cnf:
+            Cnf[key] = ""
 
     apt_pkg.parse_commandline(Cnf, Arguments, sys.argv)
 
@@ -183,36 +190,36 @@ def main():
 
     names = []
 
-    if Cnf.has_key("Graph::Options::Names"):
+    if "Graph::Options::Names" in Cnf:
         for i in Cnf["Graph::Options::Names"].split(","):
             names.append(i)
-    elif Cnf.has_key("Graph::Names"):
+    elif "Graph::Names" in Cnf:
         names = Cnf.value_list("Graph::Names")
     else:
         names = default_names
 
     extra_rrdtool_args = []
 
-    if Cnf.has_key("Graph::Options::Extra-Rrd"):
+    if "Graph::Options::Extra-Rrd" in Cnf:
         for i in Cnf["Graph::Options::Extra-Rrd"].split(","):
             f = open(i)
             extra_rrdtool_args.extend(f.read().strip().split("\n"))
             f.close()
-    elif Cnf.has_key("Graph::Extra-Rrd"):
+    elif "Graph::Extra-Rrd" in Cnf:
         for i in Cnf.value_list("Graph::Extra-Rrd"):
             f = open(i)
             extra_rrdtool_args.extend(f.read().strip().split("\n"))
             f.close()
 
-    if Cnf.has_key("Graph::Options::Rrd"):
+    if "Graph::Options::Rrd" in Cnf:
         rrd_dir = Cnf["Graph::Options::Rrd"]
-    elif Cnf.has_key("Dir::Rrd"):
+    elif "Dir::Rrd" in Cnf:
         rrd_dir = Cnf["Dir::Rrd"]
     else:
         print >> sys.stderr, "No directory to read RRD files from\n"
         sys.exit(1)
 
-    if Cnf.has_key("Graph::Options::Images"):
+    if "Graph::Options::Images" in Cnf:
         image_dir = Cnf["Graph::Options::Images"]
     else:
         print >> sys.stderr, "No directory to write graph images to\n"

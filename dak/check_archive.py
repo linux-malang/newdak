@@ -54,6 +54,7 @@ current_time = time.time()     #: now()
 
 ################################################################################
 
+
 def usage(exit_code=0):
     print """Usage: dak check-archive MODE
 Run various sanity checks of the archive and/or database.
@@ -78,7 +79,8 @@ The following MODEs are available:
 
 ################################################################################
 
-def process_dir (unused, dirname, filenames):
+
+def process_dir(unused, dirname, filenames):
     """
     Process a directory and output every files name which is not listed already
     in the C{filenames} or global C{excluded} dictionaries.
@@ -98,11 +100,12 @@ def process_dir (unused, dirname, filenames):
         return
     for name in filenames:
         filename = os.path.abspath(os.path.join(dirname,name))
-        if os.path.isfile(filename) and not os.path.islink(filename) and not db_files.has_key(filename) and not excluded.has_key(filename):
+        if os.path.isfile(filename) and not os.path.islink(filename) and filename not in db_files and filename not in excluded:
             waste += os.stat(filename)[stat.ST_SIZE]
             print "%s" % (filename)
 
 ################################################################################
+
 
 def check_files():
     """
@@ -167,6 +170,7 @@ def check_files():
 
 ################################################################################
 
+
 def check_dscs():
     """
     Parse every .dsc file in the archive and check for it's validity.
@@ -195,6 +199,7 @@ def check_dscs():
         utils.warn("Found %s invalid .dsc files." % (count))
 
 ################################################################################
+
 
 def check_override():
     """
@@ -265,6 +270,8 @@ def check_source_in_one_dir():
     print "Found %d source packages where the source is not all in one directory." % (broken_count)
 
 ################################################################################
+
+
 def check_checksums():
     """
     Validate all files
@@ -305,12 +312,14 @@ def check_checksums():
 ################################################################################
 #
 
+
 def Ent(Kind,Name,Link,Mode,UID,GID,Size,MTime,Major,Minor):
     global future_files
 
     if MTime > current_time:
         future_files[current_file] = MTime
         print "%s: %s '%s','%s',%u,%u,%u,%u,%u,%u,%u" % (current_file, Kind,Name,Link,Mode,UID,GID,Size, MTime, Major, Minor)
+
 
 def check_timestamps():
     """
@@ -339,6 +348,7 @@ def check_timestamps():
     print "Checked %d files (out of %d)." % (count, len(db_files.keys()))
 
 ################################################################################
+
 
 def check_files_in_dsc():
     """
@@ -410,6 +420,7 @@ def validate_sources(suite, component):
 
 ########################################
 
+
 def validate_packages(suite, component, architecture):
     """
     Ensure files mentioned in Packages exist
@@ -425,6 +436,7 @@ def validate_packages(suite, component, architecture):
                 print "W: %s missing." % (filename)
 
 ########################################
+
 
 def check_indices_files_exist():
     """
@@ -442,6 +454,7 @@ def check_indices_files_exist():
                     validate_packages(suite, component, arch)
 
 ################################################################################
+
 
 def check_files_not_symlinks():
     """
@@ -461,7 +474,8 @@ def check_files_not_symlinks():
 
 ################################################################################
 
-def chk_bd_process_dir (unused, dirname, filenames):
+
+def chk_bd_process_dir(unused, dirname, filenames):
     for name in filenames:
         if not name.endswith(".dsc"):
             continue
@@ -477,6 +491,7 @@ def chk_bd_process_dir (unused, dirname, filenames):
                     pass
 
 ################################################################################
+
 
 def check_build_depends():
     """ Validate build-dependencies of .dsc files in the archive """
@@ -512,6 +527,7 @@ SELECT
   WHERE NOT EXISTS (SELECT 1 FROM source_metadata md WHERE md.src_id=s.id AND md.key_id = :checksum_key);
 """
 
+
 def add_missing_source_checksums():
     """ Add missing source checksums to source_metadata """
     session = DBConn().session()
@@ -525,15 +541,17 @@ def add_missing_source_checksums():
 
 ################################################################################
 
-def main ():
+
+def main():
     global db_files, waste, excluded
 
     cnf = Config()
 
     Arguments = [('h',"help","Check-Archive::Options::Help")]
     for i in [ "help" ]:
-        if not cnf.has_key("Check-Archive::Options::%s" % (i)):
-            cnf["Check-Archive::Options::%s" % (i)] = ""
+        key = "Check-Archive::Options::%s" % i
+        if key not in cnf:
+            cnf[key] = ""
 
     args = apt_pkg.parse_commandline(cnf.Cnf, Arguments, sys.argv)
 

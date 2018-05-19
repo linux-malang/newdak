@@ -44,6 +44,7 @@ from daklib.dak_exceptions import CantOpenError
 
 ################################################################################
 
+
 def init():
     """Setup the list of modules and brief explanation of what they
     do."""
@@ -162,6 +163,7 @@ def init():
 
 ################################################################################
 
+
 def usage(functionality, exit_code=0):
     """Print a usage message and exit with 'exit_code'."""
 
@@ -175,9 +177,9 @@ Available commands:"""
 
 ################################################################################
 
+
 def main():
     """Launch dak functionality."""
-
 
     try:
         logger = Logger('dak top-level', print_starting=False)

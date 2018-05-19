@@ -30,10 +30,12 @@ from daklib.dak_exceptions import DBUpdateError
 from daklib.config import Config
 
 statements = [
-  "ALTER TABLE suite ALTER include_long_description SET DEFAULT FALSE",
+    "ALTER TABLE suite ALTER include_long_description SET DEFAULT FALSE",
 ]
 
 ################################################################################
+
+
 def do_update(self):
     print __doc__
     try:

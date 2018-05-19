@@ -83,7 +83,8 @@ use_html = False
 
 ################################################################################
 
-def usage (exit_code=0):
+
+def usage(exit_code=0):
     print """Usage: dak examine-package [PACKAGE]...
 Check NEW package(s).
 
@@ -98,11 +99,13 @@ PACKAGE can be a .changes, .dsc, .deb or .udeb filename."""
 ################################################################################
 # probably xml.sax.saxutils would work as well
 
+
 def escape_if_needed(s):
     if use_html:
         return re_html_escaping.sub(lambda x: html_escaping.get(x.group(0)), s)
     else:
         return s
+
 
 def headline(s, level=2, bodyelement=None):
     if use_html:
@@ -118,31 +121,33 @@ def headline(s, level=2, bodyelement=None):
 # Colour definitions, 'end' isn't really for use
 
 ansi_colours = {
-  'main': "\033[36m",
-  'contrib': "\033[33m",
-  'nonfree': "\033[31m",
-  'provides': "\033[35m",
-  'arch': "\033[32m",
-  'end': "\033[0m",
-  'bold': "\033[1m",
-  'maintainer': "\033[32m",
-  'distro': "\033[1m\033[41m"}
+    'main': "\033[36m",
+    'contrib': "\033[33m",
+    'nonfree': "\033[31m",
+    'provides': "\033[35m",
+    'arch': "\033[32m",
+    'end': "\033[0m",
+    'bold': "\033[1m",
+    'maintainer': "\033[32m",
+    'distro': "\033[1m\033[41m"}
 
 html_colours = {
-  'main': ('<span style="color: aqua">',"</span>"),
-  'contrib': ('<span style="color: yellow">',"</span>"),
-  'nonfree': ('<span style="color: red">',"</span>"),
-  'provides': ('<span style="color: magenta">',"</span>"),
-  'arch': ('<span style="color: green">',"</span>"),
-  'bold': ('<span style="font-weight: bold">',"</span>"),
-  'maintainer': ('<span style="color: green">',"</span>"),
-  'distro': ('<span style="font-weight: bold; background-color: red">',"</span>")}
+    'main': ('<span style="color: aqua">',"</span>"),
+    'contrib': ('<span style="color: yellow">',"</span>"),
+    'nonfree': ('<span style="color: red">',"</span>"),
+    'provides': ('<span style="color: magenta">',"</span>"),
+    'arch': ('<span style="color: green">',"</span>"),
+    'bold': ('<span style="font-weight: bold">',"</span>"),
+    'maintainer': ('<span style="color: green">',"</span>"),
+    'distro': ('<span style="font-weight: bold; background-color: red">',"</span>")}
+
 
 def colour_output(s, colour):
     if use_html:
         return ("%s%s%s" % (html_colours[colour][0], utils.html_escape(s), html_colours[colour][1]))
     else:
         return ("%s%s%s" % (ansi_colours[colour], s, ansi_colours['end']))
+
 
 def escaped_text(s, strip=False):
     if use_html:
@@ -152,6 +157,7 @@ def escaped_text(s, strip=False):
     else:
         return s
 
+
 def formatted_text(s, strip=False):
     if use_html:
         if strip:
@@ -160,17 +166,20 @@ def formatted_text(s, strip=False):
     else:
         return s
 
+
 def output_row(s):
     if use_html:
         return """<tr><td>"""+s+"""</td></tr>"""
     else:
         return s
 
+
 def format_field(k,v):
     if use_html:
         return """<tr><td class="key">%s:</td><td class="val">%s</td></tr>"""%(k,v)
     else:
         return "%s: %s"%(k,v)
+
 
 def foldable_output(title, elementnameprefix, content, norow=False):
     d = {'elementnameprefix':elementnameprefix}
@@ -191,6 +200,7 @@ def foldable_output(title, elementnameprefix, content, norow=False):
 
 ################################################################################
 
+
 def get_depends_parts(depend) :
     v_match = re_version.match(depend)
     if v_match:
@@ -199,15 +209,18 @@ def get_depends_parts(depend) :
         d_parts = { 'name' : depend , 'version' : '' }
     return d_parts
 
+
 def get_or_list(depend) :
     or_list = depend.split("|")
     return or_list
+
 
 def get_comma_list(depend) :
     dep_list = depend.split(",")
     return dep_list
 
-def split_depends (d_str) :
+
+def split_depends(d_str) :
     # creates a list of lists of dictionaries of depends (package,version relation)
 
     d_str = re_spacestrip.sub('',d_str)
@@ -231,7 +244,8 @@ def split_depends (d_str) :
         d += 1
     return depends_tree
 
-def read_control (filename):
+
+def read_control(filename):
     recommends = []
     predepends = []
     depends = []
@@ -294,7 +308,8 @@ def read_control (filename):
 
     return (control, control_keys, section, predepends, depends, recommends, arch, maintainer)
 
-def read_changes_or_dsc (suite, filename, session = None):
+
+def read_changes_or_dsc(suite, filename, session=None):
     dsc = {}
 
     dsc_file = utils.open_file(filename)
@@ -333,6 +348,7 @@ def read_changes_or_dsc (suite, filename, session = None):
     filecontents = '\n'.join(map(lambda x: format_field(x,dsc[x.lower()]), keysinorder))+'\n'
     return filecontents
 
+
 def get_provides(suite):
     provides = set()
     session = DBConn().session()
@@ -357,7 +373,8 @@ def get_provides(suite):
     session.close()
     return provides
 
-def create_depends_string (suite, depends_tree, session = None):
+
+def create_depends_string(suite, depends_tree, session=None):
     result = ""
     if suite == 'experimental':
         suite_list = ['experimental','unstable']
@@ -376,7 +393,7 @@ def create_depends_string (suite, depends_tree, session = None):
             # doesn't do version lookup yet.
 
             component = get_component_by_package_suite(d['name'], suite_list, \
-                session = session)
+                session=session)
             if component is not None:
                 adepends = d['name']
                 if d['version'] != '' :
@@ -402,7 +419,8 @@ def create_depends_string (suite, depends_tree, session = None):
         comma_count += 1
     return result
 
-def output_package_relations ():
+
+def output_package_relations():
     """
     Output the package relations, if there is more than one package checked in this run.
     """
@@ -420,13 +438,14 @@ def output_package_relations ():
     package_relations.clear()
     return foldable_output("Package relations", "relations", to_print)
 
-def output_deb_info(suite, filename, packagename, session = None):
+
+def output_deb_info(suite, filename, packagename, session=None):
     (control, control_keys, section, predepends, depends, recommends, arch, maintainer) = read_control(filename)
 
     if control == '':
         return formatted_text("no control info")
     to_print = ""
-    if not package_relations.has_key(packagename):
+    if packagename not in package_relations:
         package_relations[packagename] = {}
     for key in control_keys :
         if key == 'Pre-Depends':
@@ -461,7 +480,8 @@ def output_deb_info(suite, filename, packagename, session = None):
         to_print += " "+format_field(key,field_value)+'\n'
     return to_print
 
-def do_command (command, escaped=False):
+
+def do_command(command, escaped=False):
     process = daklib.daksubprocess.Popen(command, stdout=subprocess.PIPE)
     o = process.stdout
     try:
@@ -472,7 +492,8 @@ def do_command (command, escaped=False):
     finally:
         process.wait()
 
-def do_lintian (filename):
+
+def do_lintian(filename):
     cnf = Config()
     cmd = []
 
@@ -488,7 +509,8 @@ def do_lintian (filename):
 
     return do_command(cmd, escaped=True)
 
-def get_copyright (deb_filename):
+
+def get_copyright(deb_filename):
     global printed
 
     package = re_package.sub(r'\1', os.path.basename(deb_filename))
@@ -507,14 +529,15 @@ def get_copyright (deb_filename):
     copyrightmd5 = md5.md5(cright).hexdigest()
 
     res = ""
-    if printed.copyrights.has_key(copyrightmd5) and printed.copyrights[copyrightmd5] != "%s (%s)" % (package, os.path.basename(deb_filename)):
+    if copyrightmd5 in printed.copyrights and printed.copyrights[copyrightmd5] != "%s (%s)" % (package, os.path.basename(deb_filename)):
         res += formatted_text( "NOTE: Copyright is the same as %s.\n\n" % \
                                (printed.copyrights[copyrightmd5]))
     else:
         printed.copyrights[copyrightmd5] = "%s (%s)" % (package, os.path.basename(deb_filename))
     return res+formatted_text(cright)
 
-def get_readme_source (dsc_filename):
+
+def get_readme_source(dsc_filename):
     tempdir = utils.temp_dirname()
     os.rmdir(tempdir)
 
@@ -543,18 +566,20 @@ def get_readme_source (dsc_filename):
 
     return res
 
-def check_dsc (suite, dsc_filename, session = None):
+
+def check_dsc(suite, dsc_filename, session=None):
     dsc = read_changes_or_dsc(suite, dsc_filename, session)
     dsc_basename = os.path.basename(dsc_filename)
     return foldable_output(dsc_filename, "dsc", dsc, norow=True) + \
            "\n" + \
            foldable_output("lintian check for %s" % dsc_basename,
-	       "source-lintian", do_lintian(dsc_filename)) + \
+               "source-lintian", do_lintian(dsc_filename)) + \
            "\n" + \
            foldable_output("README.source for %s" % dsc_basename,
                "source-readmesource", get_readme_source(dsc_filename))
 
-def check_deb (suite, deb_filename, session = None):
+
+def check_deb(suite, deb_filename, session=None):
     filename = os.path.basename(deb_filename)
     packagename = filename.split('_')[0]
 
@@ -568,30 +593,33 @@ def check_deb (suite, deb_filename, session = None):
 
     if is_a_udeb:
         result += foldable_output("skipping lintian check for udeb",
-	    "binary-%s-lintian"%packagename, "") + "\n"
+            "binary-%s-lintian"%packagename, "") + "\n"
     else:
         result += foldable_output("lintian check for %s" % (filename),
-	    "binary-%s-lintian"%packagename, do_lintian(deb_filename)) + "\n"
+            "binary-%s-lintian"%packagename, do_lintian(deb_filename)) + "\n"
 
     result += foldable_output("contents of %s" % (filename), "binary-%s-contents"%packagename,
                               do_command(["dpkg", "-c", deb_filename])) + "\n"
 
     if is_a_udeb:
         result += foldable_output("skipping copyright for udeb",
-	    "binary-%s-copyright"%packagename, "") + "\n"
+            "binary-%s-copyright"%packagename, "") + "\n"
     else:
         result += foldable_output("copyright of %s" % (filename),
-	    "binary-%s-copyright"%packagename, get_copyright(deb_filename)) + "\n"
+            "binary-%s-copyright"%packagename, get_copyright(deb_filename)) + "\n"
 
     return result
 
 # Read a file, strip the signature and return the modified contents as
 # a string.
-def strip_pgp_signature (filename):
+
+
+def strip_pgp_signature(filename):
     with utils.open_file(filename) as f:
         data = f.read()
         signedfile = SignedFile(data, keyrings=(), require_signature=False)
         return signedfile.contents
+
 
 def display_changes(suite, changes_filename):
     global printed
@@ -599,9 +627,10 @@ def display_changes(suite, changes_filename):
     printed.copyrights = {}
     return foldable_output(changes_filename, "changes", changes, norow=True)
 
-def check_changes (changes_filename):
+
+def check_changes(changes_filename):
     try:
-        changes = utils.parse_changes (changes_filename)
+        changes = utils.parse_changes(changes_filename)
     except ChangesUnicodeError:
         utils.warn("Encoding problem with changes file %s" % (changes_filename))
     print display_changes(changes['distribution'], changes_filename)
@@ -614,7 +643,8 @@ def check_changes (changes_filename):
             print check_dsc(changes['distribution'], f)
         # else: => byhand
 
-def main ():
+
+def main():
     global Cnf, db_files, waste, excluded
 
 #    Cnf = utils.get_conf()
@@ -623,8 +653,9 @@ def main ():
                  ('H',"html-output","Examine-Package::Options::Html-Output"),
                 ]
     for i in [ "Help", "Html-Output", "partial-html" ]:
-        if not Cnf.has_key("Examine-Package::Options::%s" % (i)):
-            Cnf["Examine-Package::Options::%s" % (i)] = ""
+        key = "Examine-Package::Options::%s" % i
+        if key not in Cnf:
+            Cnf[key] = ""
 
     args = apt_pkg.parse_commandline(Cnf,Arguments,sys.argv)
     Options = Cnf.subtree("Examine-Package::Options")

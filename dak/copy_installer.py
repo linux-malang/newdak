@@ -22,9 +22,14 @@
 from daklib.config import Config
 import daklib.daksubprocess
 
-import apt_pkg, glob, os.path, re, sys
+import apt_pkg
+import glob
+import os.path
+import re
+import sys
 
-def usage(exit_code = 0):
+
+def usage(exit_code=0):
     print """Usage: dak copy-installer [OPTION]... VERSION
   -h, --help         show this help and exit
   -s, --source       source suite      (defaults to unstable)
@@ -33,6 +38,7 @@ def usage(exit_code = 0):
 
 Exactly 1 version must be specified."""
     sys.exit(exit_code)
+
 
 def main():
     cnf = Config()
@@ -43,8 +49,9 @@ def main():
             ('n', "no-action",   "Copy-Installer::Options::No-Action"),
             ]
     for option in [ "help", "source", "destination", "no-action" ]:
-        if not cnf.has_key("Copy-Installer::Options::%s" % (option)):
-            cnf["Copy-Installer::Options::%s" % (option)] = ""
+        key = "Copy-Installer::Options::%s" % option
+        if key not in cnf:
+            cnf[key] = ""
     extra_arguments = apt_pkg.parse_commandline(cnf.Cnf, Arguments, sys.argv)
     Options = cnf.subtree("Copy-Installer::Options")
 
@@ -69,8 +76,9 @@ def main():
 
 root_dir = Config()['Dir::Root']
 
+
 class InstallerCopier:
-    def __init__(self, source = 'unstable', dest = 'testing',
+    def __init__(self, source='unstable', dest='testing',
             **keywords):
         self.source = source
         self.dest = dest

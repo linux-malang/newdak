@@ -47,6 +47,7 @@ Logger = None
 Queue = None
 changes = []
 
+
 def usage():
     print """Usage: dak security-install [OPTIONS] changesfiles
 Do whatever there is to do for a security release
@@ -77,6 +78,7 @@ def spawn(command):
 #
 ##################### ! ! ! N O T E ! ! !  #####################
 
+
 def sudo(arg, fn, exit):
     if Options["Sudo"]:
         os.spawnl(os.P_WAIT, "/usr/bin/sudo", "/usr/bin/sudo", "-u", "dak", "-H",
@@ -86,7 +88,10 @@ def sudo(arg, fn, exit):
     if exit:
         quit()
 
+
 def do_Approve(): sudo("A", _do_Approve, True)
+
+
 def _do_Approve():
     print "Locking unchecked"
     with os.fdopen(os.open('/srv/security-master.debian.org/lock/unchecked.lock', os.O_CREAT | os.O_RDWR ), 'r') as lock_fd:
@@ -103,8 +108,8 @@ def _do_Approve():
 
         # 1. Install accepted packages
         print "Installing accepted packages into security archive"
-        for queue in ("embargoed",):
-            spawn("dak process-policy {0}".format(queue))
+        for queue_name in ("embargoed",):
+            spawn("dak process-policy {0}".format(queue_name))
 
     # 2. Run all the steps that are needed to publish the changed archive
     print "Doing loadsa stuff in the archive, will take time, please be patient"
@@ -116,6 +121,7 @@ def _do_Approve():
 
 ########################################################################
 ########################################################################
+
 
 def main():
     global Options, Logger, Queue, changes
@@ -129,8 +135,9 @@ def main():
                  ]
 
     for i in ["Help", "No-Action", "Changesfile", "Sudo", "Approve"]:
-        if not cnf.has_key("Security::Options::%s" % (i)):
-            cnf["Security::Options::%s" % (i)] = ""
+        key = "Security::Options::%s" % i
+        if key not in cnf:
+            cnf[key] = ""
 
     changes_files = apt_pkg.parse_commandline(cnf.Cnf, Arguments, sys.argv)
 
