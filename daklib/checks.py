@@ -748,7 +748,7 @@ currently {1}, we need version {2}).  This transition is managed by the
 Release Team, and {3} is the Release-Team member responsible for it.
 Please mail debian-release@lists.debian.org or contact {3} directly if you
 need further assistance.  You might want to upload to experimental until this
-transition is done.""".format(transition_source, currentlymsg, expected,t["rm"])))
+transition is done.""".format(transition_source, currentlymsg, expected, t["rm"])))
 
                     raise Reject(rejectmsg)
 
@@ -893,9 +893,9 @@ class LintianCheck(Check):
             os.unlink(temp_filename)
 
         if result == 2:
-            utils.warn("lintian failed for %s [return code: %s]." % \
+            utils.warn("lintian failed for %s [return code: %s]." %
                 (changespath, result))
-            utils.warn(utils.prefix_multi_line_string(output, \
+            utils.warn(utils.prefix_multi_line_string(output,
                 " [possible output:] "))
 
         parsed_tags = lintian.parse_lintian_output(output)

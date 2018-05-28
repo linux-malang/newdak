@@ -61,7 +61,7 @@ OPTIONS
         Print this documentation.
 """
 
-arguments = [('s','simulate','BtsCategorize::Options::Simulate'),
+arguments = [('s', 'simulate', 'BtsCategorize::Options::Simulate'),
              ('v', 'verbose', 'BtsCategorize::Options::Verbose'),
              ('q', 'quiet', 'BtsCategorize::Options::Quiet'),
              ('h', 'help', 'BtsCategorize::Options::Help')]
@@ -99,7 +99,7 @@ class BugClassifier(object):
         for tags in tagged_bugs.keys():
             tagged_bugs_ftp += tagged_bugs[tags]
 
-        return [bug for bug in bts.get_status(bts.get_bugs("package", "ftp.debian.org")) \
+        return [bug for bug in bts.get_status(bts.get_bugs("package", "ftp.debian.org"))
                      if bug.pending == 'pending' and bug.bug_num not in tagged_bugs_ftp]
 
     def classify_bug(self, bug):
@@ -144,7 +144,7 @@ def send_email(commands, simulate=False):
              "__DAK_ADDRESS__": Cnf["Dinstall::MyAdminAddress"]}
 
     bts_mail_message = utils.TemplateSubst(
-        Subst,Cnf["Dir::Templates"] + "/bts-categorize")
+        Subst, Cnf["Dir::Templates"] + "/bts-categorize")
 
     if simulate:
         print bts_mail_message
@@ -195,6 +195,6 @@ def main():
 
 
 if __name__ == '__main__':
-#    import doctest
-#    doctest.testmod()
+    #    import doctest
+    #    doctest.testmod()
     main()

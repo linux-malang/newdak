@@ -314,9 +314,9 @@ def real_comment_reject(upload, srcqueue, comments, transaction, notify=True, ma
     if upload.source is not None:
         poolfiles.extend([df.poolfile for df in upload.source.srcfiles])
     # Not beautiful...
-    files = [af.path for af in session.query(ArchiveFile) \
-                  .filter_by(archive=upload.policy_queue.suite.archive) \
-                  .join(ArchiveFile.file) \
+    files = [af.path for af in session.query(ArchiveFile)
+                  .filter_by(archive=upload.policy_queue.suite.archive)
+                  .join(ArchiveFile.file)
                   .filter(PoolFile.file_id.in_([f.file_id for f in poolfiles]))]
     for byhand in upload.byhand:
         path = os.path.join(queuedir, byhand.filename)
@@ -488,15 +488,15 @@ def main():
     cnf = Config()
     session = DBConn().session()
 
-    Arguments = [('h',"help","Process-Policy::Options::Help"),
-                 ('n',"no-action","Process-Policy::Options::No-Action")]
+    Arguments = [('h', "help", "Process-Policy::Options::Help"),
+                 ('n', "no-action", "Process-Policy::Options::No-Action")]
 
     for i in ["help", "no-action"]:
         key = "Process-Policy::Options::%s" % i
         if key not in cnf:
             cnf[key] = ""
 
-    queue_name = apt_pkg.parse_commandline(cnf.Cnf,Arguments,sys.argv)
+    queue_name = apt_pkg.parse_commandline(cnf.Cnf, Arguments, sys.argv)
 
     if len(queue_name) != 1:
         print "E: Specify exactly one policy queue"

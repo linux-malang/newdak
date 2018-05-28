@@ -200,14 +200,14 @@ def export_files(session, archive, clpool, progress=False):
             path = os.path.join(clpool, '/'.join(sources[p][s][1].split('/')[:-1]))
             if not os.path.exists(path):
                 os.makedirs(path)
-            if not os.path.exists(os.path.join(path, \
+            if not os.path.exists(os.path.join(path,
                    '%s_%s_changelog' % (p, sources[p][s][0]))):
                 if os.path.join(pool, sources[p][s][1]) not in unpack:
                     unpack[os.path.join(pool, sources[p][s][1])] = (path, set())
                 unpack[os.path.join(pool, sources[p][s][1])][1].add(s)
             else:
                 for file in glob('%s/%s_%s_*' % (path, p, sources[p][s][0])):
-                    link = '%s%s' % (s, file.split('%s_%s' \
+                    link = '%s%s' % (s, file.split('%s_%s'
                                       % (p, sources[p][s][0]))[1])
                     try:
                         os.unlink(os.path.join(path, link))
@@ -229,9 +229,9 @@ def export_files(session, archive, clpool, progress=False):
             for file in files:
                 for f in glob(os.path.join(tempdir, 'debian', '*%s' % file)):
                     for s in unpack[p][1]:
-                        suite = os.path.join(unpack[p][0], '%s_%s' \
+                        suite = os.path.join(unpack[p][0], '%s_%s'
                                 % (s, os.path.basename(f)))
-                        version = os.path.join(unpack[p][0], '%s_%s_%s' % \
+                        version = os.path.join(unpack[p][0], '%s_%s_%s' %
                                   (package[0], package[1], os.path.basename(f)))
                         if not os.path.exists(version):
                             os.link(f, version)
@@ -299,13 +299,13 @@ def generate_export_filelist(clpool):
 
 def main():
     Cnf = utils.get_conf()
-    Arguments = [('h','help','Make-Changelog::Options::Help'),
-                 ('a','archive','Make-Changelog::Options::Archive','HasArg'),
-                 ('s','suite','Make-Changelog::Options::Suite','HasArg'),
-                 ('b','base-suite','Make-Changelog::Options::Base-Suite','HasArg'),
-                 ('n','binnmu','Make-Changelog::Options::binNMU'),
-                 ('e','export','Make-Changelog::Options::export'),
-                 ('p','progress','Make-Changelog::Options::progress')]
+    Arguments = [('h', 'help', 'Make-Changelog::Options::Help'),
+                 ('a', 'archive', 'Make-Changelog::Options::Archive', 'HasArg'),
+                 ('s', 'suite', 'Make-Changelog::Options::Suite', 'HasArg'),
+                 ('b', 'base-suite', 'Make-Changelog::Options::Base-Suite', 'HasArg'),
+                 ('n', 'binnmu', 'Make-Changelog::Options::binNMU'),
+                 ('e', 'export', 'Make-Changelog::Options::export'),
+                 ('p', 'progress', 'Make-Changelog::Options::progress')]
 
     for i in ['help', 'suite', 'base-suite', 'binnmu', 'export', 'progress']:
         key = 'Make-Changelog::Options::%s' % i

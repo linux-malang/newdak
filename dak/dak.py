@@ -213,7 +213,7 @@ def main():
             if len(match) == 1:
                 cmdname = match[0]
             elif len(match) > 1:
-                daklib.utils.warn("ambiguous command '%s' - could be %s" \
+                daklib.utils.warn("ambiguous command '%s' - could be %s"
                            % (cmdname, ", ".join(match)))
                 usage(functionality, 1)
             else:
@@ -221,7 +221,7 @@ def main():
                 usage(functionality, 1)
 
     # Invoke the module
-    module = __import__(cmdname.replace("-","_"))
+    module = __import__(cmdname.replace("-", "_"))
 
     try:
         module.main()

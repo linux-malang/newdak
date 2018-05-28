@@ -51,9 +51,9 @@ def main():
 
     Cnf = utils.get_conf()
 
-    Arguments = [('h',"help","Add-User::Options::Help"),
-                 ('k',"key","Add-User::Options::Key", "HasArg"),
-                 ('u',"user","Add-User::Options::User", "HasArg"),
+    Arguments = [('h', "help", "Add-User::Options::Help"),
+                 ('k', "key", "Add-User::Options::Key", "HasArg"),
+                 ('u', "user", "Add-User::Options::User", "HasArg"),
                  ]
 
     for i in ["help"]:
@@ -79,11 +79,11 @@ def main():
     m = re_gpg_fingerprint_colon.search(output)
     if not m:
         print output
-        utils.fubar("0x%s: (1) No fingerprint found in gpg output but it returned 0?\n%s" \
-                                        % (Cnf["Add-User::Options::Key"], utils.prefix_multi_line_string(output, \
+        utils.fubar("0x%s: (1) No fingerprint found in gpg output but it returned 0?\n%s"
+                                        % (Cnf["Add-User::Options::Key"], utils.prefix_multi_line_string(output,
                                                                                                                                                                 " [GPG output:] ")))
     primary_key = m.group(1)
-    primary_key = primary_key.replace(" ","")
+    primary_key = primary_key.replace(" ", "")
 
     uid = ""
     if "Add-User::Options::User" in Cnf and Cnf["Add-User::Options::User"]:
@@ -93,7 +93,7 @@ def main():
         u = re_user_address.search(output)
         if not u:
             print output
-            utils.fubar("0x%s: (2) No userid found in gpg output but it returned 0?\n%s" \
+            utils.fubar("0x%s: (2) No userid found in gpg output but it returned 0?\n%s"
                         % (Cnf["Add-User::Options::Key"], utils.prefix_multi_line_string(output, " [GPG output:] ")))
         uid = u.group(1)
         n = re_user_name.search(output)
@@ -129,7 +129,7 @@ def main():
                 f.write(mail + '\n')
             f.close()
 
-        print "Added:\nUid:\t %s (ID: %s)\nMaint:\t %s\nFP:\t %s" % (uid, uid_id, \
+        print "Added:\nUid:\t %s (ID: %s)\nMaint:\t %s\nFP:\t %s" % (uid, uid_id,
                      name, primary_key)
 
         # Should we send mail to the newly added user?
@@ -145,7 +145,7 @@ def main():
             Subst["__HOSTNAME__"] = Cnf["Dinstall::MyHost"]
             Subst["__DISTRO__"] = Cnf["Dinstall::MyDistribution"]
             Subst["__SUMMARY__"] = summary
-            new_add_message = utils.TemplateSubst(Subst,Cnf["Dir::Templates"] + "/add-user.added")
+            new_add_message = utils.TemplateSubst(Subst, Cnf["Dir::Templates"] + "/add-user.added")
             utils.send_mail(new_add_message)
 
     else:

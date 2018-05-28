@@ -42,17 +42,11 @@ to stdout. Those functions can be used in multithreaded parts of dak.
 
 ################################################################################
 
-# suppress some deprecation warnings in squeeze related to md5 module
-import warnings
-warnings.filterwarnings('ignore', \
-    "the md5 module is deprecated; use hashlib instead", \
-    DeprecationWarning)
-
 import errno
+import hashlib
 import os
 import re
 import sys
-import md5
 import apt_pkg
 import apt_inst
 import shutil
@@ -112,7 +106,7 @@ def headline(s, level=2, bodyelement=None):
         if bodyelement:
             return """<thead>
                 <tr><th colspan="2" class="title" onclick="toggle('%(bodyelement)s', 'table-row-group', 'table-row-group')">%(title)s <span class="toggle-msg">(click to toggle)</span></th></tr>
-              </thead>\n""" % {"bodyelement":bodyelement,"title":utils.html_escape(os.path.basename(s))}
+              </thead>\n""" % {"bodyelement": bodyelement, "title": utils.html_escape(os.path.basename(s))}
         else:
             return "<h%d>%s</h%d>\n" % (level, utils.html_escape(s), level)
     else:
@@ -132,14 +126,14 @@ ansi_colours = {
     'distro': "\033[1m\033[41m"}
 
 html_colours = {
-    'main': ('<span style="color: aqua">',"</span>"),
-    'contrib': ('<span style="color: yellow">',"</span>"),
-    'nonfree': ('<span style="color: red">',"</span>"),
-    'provides': ('<span style="color: magenta">',"</span>"),
-    'arch': ('<span style="color: green">',"</span>"),
-    'bold': ('<span style="font-weight: bold">',"</span>"),
-    'maintainer': ('<span style="color: green">',"</span>"),
-    'distro': ('<span style="font-weight: bold; background-color: red">',"</span>")}
+    'main': ('<span style="color: aqua">', "</span>"),
+    'contrib': ('<span style="color: yellow">', "</span>"),
+    'nonfree': ('<span style="color: red">', "</span>"),
+    'provides': ('<span style="color: magenta">', "</span>"),
+    'arch': ('<span style="color: green">', "</span>"),
+    'bold': ('<span style="font-weight: bold">', "</span>"),
+    'maintainer': ('<span style="color: green">', "</span>"),
+    'distro': ('<span style="font-weight: bold; background-color: red">', "</span>")}
 
 
 def colour_output(s, colour):
@@ -174,15 +168,15 @@ def output_row(s):
         return s
 
 
-def format_field(k,v):
+def format_field(k, v):
     if use_html:
-        return """<tr><td class="key">%s:</td><td class="val">%s</td></tr>""" % (k,v)
+        return """<tr><td class="key">%s:</td><td class="val">%s</td></tr>""" % (k, v)
     else:
-        return "%s: %s" % (k,v)
+        return "%s: %s" % (k, v)
 
 
 def foldable_output(title, elementnameprefix, content, norow=False):
-    d = {'elementnameprefix':elementnameprefix}
+    d = {'elementnameprefix': elementnameprefix}
     result = ''
     if use_html:
         result += """<div id="%(elementnameprefix)s-wrap"><a name="%(elementnameprefix)s" />
@@ -223,7 +217,7 @@ def get_comma_list(depend):
 def split_depends(d_str):
     # creates a list of lists of dictionaries of depends (package,version relation)
 
-    d_str = re_spacestrip.sub('',d_str)
+    d_str = re_spacestrip.sub('', d_str)
     depends_tree = []
     # first split depends string up amongs comma delimiter
     dep_list = get_comma_list(d_str)
@@ -327,7 +321,7 @@ def read_changes_or_dsc(suite, filename, session=None):
             keysinorder.append(m.group(1))
 
     for k in dsc.keys():
-        if k in ("build-depends","build-depends-indep"):
+        if k in ("build-depends", "build-depends-indep"):
             dsc[k] = create_depends_string(suite, split_depends(dsc[k]), session)
         elif k == "architecture":
             if (dsc["architecture"] != "any"):
@@ -335,7 +329,7 @@ def read_changes_or_dsc(suite, filename, session=None):
         elif k == "distribution":
             if dsc["distribution"] not in ('unstable', 'experimental'):
                 dsc['distribution'] = colour_output(dsc["distribution"], 'distro')
-        elif k in ("files","changes","description"):
+        elif k in ("files", "changes", "description"):
             if use_html:
                 dsc[k] = formatted_text(dsc[k], strip=True)
             else:
@@ -345,7 +339,7 @@ def read_changes_or_dsc(suite, filename, session=None):
 
     keysinorder = filter(lambda x: not x.lower().startswith('checksums-'), keysinorder)
 
-    filecontents = '\n'.join(map(lambda x: format_field(x,dsc[x.lower()]), keysinorder)) + '\n'
+    filecontents = '\n'.join(map(lambda x: format_field(x, dsc[x.lower()]), keysinorder)) + '\n'
     return filecontents
 
 
@@ -377,7 +371,7 @@ def get_provides(suite):
 def create_depends_string(suite, depends_tree, session=None):
     result = ""
     if suite == 'experimental':
-        suite_list = ['experimental','unstable']
+        suite_list = ['experimental', 'unstable']
     else:
         suite_list = [suite]
 
@@ -392,7 +386,7 @@ def create_depends_string(suite, depends_tree, session=None):
                 result += " | "
             # doesn't do version lookup yet.
 
-            component = get_component_by_package_suite(d['name'], suite_list, \
+            component = get_component_by_package_suite(d['name'], suite_list,
                 session=session)
             if component is not None:
                 adepends = d['name']
@@ -477,7 +471,7 @@ def output_deb_info(suite, filename, packagename, session=None):
                 field_value = escape_if_needed(desc)
         else:
             field_value = escape_if_needed(control.find(key))
-        to_print += " " + format_field(key,field_value) + '\n'
+        to_print += " " + format_field(key, field_value) + '\n'
     return to_print
 
 
@@ -526,11 +520,11 @@ def get_copyright(deb_filename):
 
     o = os.popen("dpkg-deb --fsys-tarfile %s | tar xvOf - %s 2>/dev/null" % (deb_filename, cright))
     cright = o.read()
-    copyrightmd5 = md5.md5(cright).hexdigest()
+    copyrightmd5 = hashlib.md5(cright).hexdigest()
 
     res = ""
     if copyrightmd5 in printed.copyrights and printed.copyrights[copyrightmd5] != "%s (%s)" % (package, os.path.basename(deb_filename)):
-        res += formatted_text("NOTE: Copyright is the same as %s.\n\n" % \
+        res += formatted_text("NOTE: Copyright is the same as %s.\n\n" %
                                (printed.copyrights[copyrightmd5]))
     else:
         printed.copyrights[copyrightmd5] = "%s (%s)" % (package, os.path.basename(deb_filename))
@@ -649,15 +643,15 @@ def main():
 
 #    Cnf = utils.get_conf()
 
-    Arguments = [('h',"help","Examine-Package::Options::Help"),
-                 ('H',"html-output","Examine-Package::Options::Html-Output"),
+    Arguments = [('h', "help", "Examine-Package::Options::Help"),
+                 ('H', "html-output", "Examine-Package::Options::Html-Output"),
                 ]
     for i in ["Help", "Html-Output", "partial-html"]:
         key = "Examine-Package::Options::%s" % i
         if key not in Cnf:
             Cnf[key] = ""
 
-    args = apt_pkg.parse_commandline(Cnf,Arguments,sys.argv)
+    args = apt_pkg.parse_commandline(Cnf, Arguments, sys.argv)
     Options = Cnf.subtree("Examine-Package::Options")
 
     if Options["Help"]:
