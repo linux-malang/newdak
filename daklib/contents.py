@@ -25,11 +25,13 @@ Helper code for contents generation.
 
 ################################################################################
 
+from __future__ import absolute_import, print_function
+
 from daklib.dbconn import *
 from daklib.config import Config
 from daklib.filewriter import BinaryContentsFileWriter, SourceContentsFileWriter
 
-from multiprocessing import Pool
+from .dakmultiprocessing import DakProcessPool
 from shutil import rmtree
 from tempfile import mkdtemp
 
@@ -295,7 +297,7 @@ class ContentsWriter(object):
             suite_query = suite_query.filter(Suite.untouchable == False)  # noqa:E712
         deb_id = get_override_type('deb', session).overridetype_id
         udeb_id = get_override_type('udeb', session).overridetype_id
-        pool = Pool()
+        pool = DakProcessPool()
 
         # Lock tables so that nobody can change things underneath us
         session.execute("LOCK TABLE bin_contents IN SHARE MODE")
@@ -364,7 +366,7 @@ class BinaryContentsScanner(object):
         if limit is not None:
             query = query.limit(limit)
         processed = query.count()
-        pool = Pool()
+        pool = DakProcessPool()
         for binary in query.yield_per(100):
             pool.apply_async(binary_scan_helper, (binary.binary_id, ))
         pool.close()
@@ -483,7 +485,7 @@ class SourceContentsScanner(object):
         if limit is not None:
             query = query.limit(limit)
         processed = query.count()
-        pool = Pool()
+        pool = DakProcessPool()
         for source in query.yield_per(100):
             pool.apply_async(source_scan_helper, (source.source_id, ))
         pool.close()
@@ -501,4 +503,4 @@ def source_scan_helper(source_id):
         scanner = SourceContentsScanner(source_id)
         scanner.scan()
     except Exception as e:
-        print e
+        print(e)

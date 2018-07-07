@@ -23,6 +23,8 @@
 Please read the documentation for the L{Check} class for the interface.
 """
 
+from __future__ import print_function
+
 from daklib.config import Config
 import daklib.daksubprocess
 from daklib.dbconn import *
@@ -135,6 +137,8 @@ class SignatureAndHashesCheck(Check):
     """
 
     def check(self, upload):
+        allow_source_untrusted_sig_keys = Config().value_list('Dinstall::AllowSourceUntrustedSigKeys')
+
         changes = upload.changes
         if not changes.valid_signature:
             raise Reject("Signature for .changes not valid.")
@@ -147,10 +151,11 @@ class SignatureAndHashesCheck(Check):
         except Exception as e:
             raise Reject("Invalid dsc file: {0}".format(e))
         if source is not None:
-            if not source.valid_signature:
-                raise Reject("Signature for .dsc not valid.")
-            if source.primary_fingerprint != changes.primary_fingerprint:
-                raise Reject(".changes and .dsc not signed by the same key.")
+            if changes.primary_fingerprint not in allow_source_untrusted_sig_keys:
+                if not source.valid_signature:
+                    raise Reject("Signature for .dsc not valid.")
+                if source.primary_fingerprint != changes.primary_fingerprint:
+                    raise Reject(".changes and .dsc not signed by the same key.")
             self._check_hashes(upload, source.filename, source.files.itervalues())
 
         if upload.fingerprint is None or upload.fingerprint.uid is None:
@@ -831,6 +836,22 @@ class NoSourceOnlyCheck(Check):
         return True
 
 
+class NewOverrideCheck(Check):
+    """Override NEW requirement
+    """
+    def check(self, upload):
+        if not upload.new:
+            return True
+
+        new_override_keys = Config().value_list('Dinstall::NewOverrideKeys')
+        changes = upload.changes
+
+        if changes.primary_fingerprint in new_override_keys:
+            upload.new = False
+
+        return True
+
+
 class ArchAllBinNMUCheck(Check):
     """Check for arch:all binNMUs"""
 
@@ -872,7 +893,7 @@ class LintianCheck(Check):
         temptagfile = os.fdopen(fd, 'w')
         for tags in lintiantags.itervalues():
             for tag in tags:
-                print >>temptagfile, tag
+                print(tag, file=temptagfile)
         temptagfile.close()
 
         changespath = os.path.join(upload.directory, changes.filename)

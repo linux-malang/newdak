@@ -33,8 +33,11 @@
 
 ################################################################################
 
+from __future__ import absolute_import, print_function
+
 import apt_pkg
 import daklib.daksubprocess
+import functools
 import os
 from os.path import normpath
 import re
@@ -53,7 +56,7 @@ import sqlalchemy
 from sqlalchemy import create_engine, Table, MetaData, Column, Integer, desc, \
     Text, ForeignKey
 from sqlalchemy.orm import sessionmaker, mapper, relation, object_session, \
-    backref, MapperExtension, EXT_CONTINUE, object_mapper, clear_mappers
+    backref, MapperExtension, EXT_CONTINUE, object_mapper
 import sqlalchemy.types
 from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.ext.associationproxy import association_proxy
@@ -432,7 +435,7 @@ class DBBinary(ORMObject):
         @rtype: text
         @return: stanza text of the control section.
         '''
-        import utils
+        from . import utils
         fullpath = self.poolfile.fullpath
         with open(fullpath, 'r') as deb_file:
             return utils.deb_extract_control(deb_file)
@@ -1337,19 +1340,32 @@ __all__.append('get_policy_queue')
 ################################################################################
 
 
+@functools.total_ordering
 class PolicyQueueUpload(object):
-    def __cmp__(self, other):
-        ret = cmp(self.changes.source, other.changes.source)
-        if ret == 0:
-            ret = apt_pkg.version_compare(self.changes.version, other.changes.version)
-        if ret == 0:
-            if self.source is not None and other.source is None:
-                ret = -1
-            elif self.source is None and other.source is not None:
-                ret = 1
-        if ret == 0:
-            ret = cmp(self.changes.changesname, other.changes.changesname)
-        return ret
+    def __eq__(self, other):
+        if self.changes.source == other.changes.source:
+            return True
+        if apt_pkg.version_compare(self.changes.version, other.changes.version) == 0:
+            return True
+        if self.source == other.source:
+            return True
+        if self.changes.changesname == other.changes.changesname:
+            return True
+        return False
+
+    def __lt__(self, other):
+        if self.changes.source < other.changes.source:
+            return True
+        if apt_pkg.version_compare(self.changes.version, other.changes.version) < 0:
+            return True
+        if self.source is not None and other.source is None:
+            return True
+        if self.source is None and other.source is not None:
+            return False
+        if self.changes.changesname < other.changes.changesname:
+            return True
+        return False
+
 
 __all__.append('PolicyQueueUpload')
 
@@ -2141,6 +2157,8 @@ class DBConn(object):
     """
     __shared_state = {}
 
+    db_meta = None
+
     tbl_architecture = Architecture.__table__
 
     tables = (
@@ -2518,17 +2536,18 @@ class DBConn(object):
 
         try:
             self.db_pg = create_engine(connstr, **engine_args)
-            self.db_meta = Base.metadata
-            self.db_meta.bind = self.db_pg
             self.db_smaker = sessionmaker(bind=self.db_pg,
                                           autoflush=True,
                                           autocommit=False)
 
-            self.__setuptables()
-            self.__setupmappers()
+            if self.db_meta is None:
+                self.__class__.db_meta = Base.metadata
+                self.__class__.db_meta.bind = self.db_pg
+                self.__setuptables()
+                self.__setupmappers()
 
         except OperationalError as e:
-            import utils
+            from . import utils
             utils.fubar("Cannot connect to database (%s)" % str(e))
 
         self.pid = os.getpid()
@@ -2542,7 +2561,6 @@ class DBConn(object):
         '''
         # reinitialize DBConn in new processes
         if self.pid != os.getpid():
-            clear_mappers()
             self.__createconn()
         session = self.db_smaker()
         if work_mem > 0:
